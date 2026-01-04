@@ -1,0 +1,83 @@
+// CompeteAI Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Company {
+  id               Int       @id @default(autoincrement())
+  name             String    @unique
+  slug             String    @unique
+  headquarters     String?
+  website          String?
+  therapyAreas     String[]
+  
+  trials           ClinicalTrial[]
+  newsItems        NewsItem[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index([name])
+}
+
+model ClinicalTrial {
+  id                  Int       @id @default(autoincrement())
+  nctId               String    @unique
+  title               String    @db.Text
+  
+  companyId           Int?
+  company             Company?  @relation(fields: [companyId], references: [id])
+  sponsorName         String?
+  
+  phase               String?
+  status              String
+  
+  conditions          String[]
+  interventions       String[]
+  
+  startDate           DateTime?
+  completionDate      DateTime?
+  
+  enrollmentCount     Int?
+  studyType           String?
+  locations           String[]
+  
+  briefSummary        String?   @db.Text
+  url                 String?
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  @@index([nctId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model NewsItem {
+  id              Int       @id @default(autoincrement())
+  title           String    @db.Text
+  summary         String?   @db.Text
+  
+  source          String
+  sourceUrl       String?   @unique
+  
+  category        String
+  
+  companyId       Int?
+  company         Company?  @relation(fields: [companyId], references: [id])
+  
+  publishedDate   DateTime
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([category])
+  @@index([publishedDate])
+}
+
