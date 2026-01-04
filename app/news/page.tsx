@@ -23,8 +23,8 @@ export default function NewsPage() {
   const [news, setNews] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('pharmaceutical OR pharma OR drug OR biotech');
-  const [currentQuery, setCurrentQuery] = useState('pharmaceutical OR pharma OR drug OR biotech');
+  const [searchQuery, setSearchQuery] = useState('(pharmaceutical OR pharma OR biotech) AND (drug OR trial OR FDA OR approval OR clinical)');
+  const [currentQuery, setCurrentQuery] = useState('(pharmaceutical OR pharma OR biotech) AND (drug OR trial OR FDA OR approval OR clinical)');
   const [sortBy, setSortBy] = useState('publishedAt');
   const [totalResults, setTotalResults] = useState(0);
 
@@ -108,28 +108,34 @@ export default function NewsPage() {
           <FaFilter className="text-gray-500" />
           <span className="text-sm font-medium text-gray-700">Quick Filters:</span>
           <button
-            onClick={() => handleQuickFilter('FDA approval')}
+            onClick={() => handleQuickFilter('(FDA OR EMA) AND (approval OR breakthrough)')}
             className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
           >
-            FDA Approvals
+            Regulatory
           </button>
           <button
-            onClick={() => handleQuickFilter('clinical trial phase 3')}
+            onClick={() => handleQuickFilter('(phase 3 OR phase 2) AND (clinical trial OR trial results)')}
             className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
           >
-            Clinical Trials
+            Trials
           </button>
           <button
-            onClick={() => handleQuickFilter('merger acquisition pharma')}
+            onClick={() => handleQuickFilter('(merger OR acquisition OR partnership) AND (pharma OR biotech)')}
             className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
           >
             M&A
           </button>
           <button
-            onClick={() => handleQuickFilter('biotech funding investment')}
-            className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-full hover:bg-yellow-200 transition-colors"
+            onClick={() => handleQuickFilter('(gene therapy OR CRISPR OR mRNA OR CAR-T)')}
+            className="px-3 py-1 text-sm bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-colors"
           >
-            Funding
+            Gene Therapy
+          </button>
+          <button
+            onClick={() => handleQuickFilter('(Pfizer OR Roche OR Moderna OR BioNTech OR Novartis)')}
+            className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors"
+          >
+            Top Companies
           </button>
         </div>
 

@@ -215,24 +215,14 @@ export default function CompaniesPage() {
         </div>
       )}
 
-      {/* Database Setup Notice */}
-      {!loading && !error && companies.length === 0 && !searchTerm && !selectedTherapyArea && (
-        <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="text-lg font-bold text-blue-900 mb-2">🗄️ Database Setup Required</h3>
-          <p className="text-sm text-blue-800 mb-4">
-            To see company data, you need to set up Vercel Postgres and run the seed script.
-          </p>
-          <div className="bg-white p-4 rounded border border-blue-200">
-            <p className="text-sm font-mono text-gray-800 mb-2">
-              # 1. Set up Vercel Postgres (see VERCEL_POSTGRES_SETUP.md)
-            </p>
-            <p className="text-sm font-mono text-gray-800 mb-2"># 2. Push schema:</p>
-            <p className="text-sm font-mono text-gray-800 mb-2">npx prisma db push</p>
-            <p className="text-sm font-mono text-gray-800 mb-2"># 3. Seed companies:</p>
-            <p className="text-sm font-mono text-gray-800">npm run db:seed</p>
-          </div>
-        </div>
-      )}
+      {/* Demo Data Notice */}
+      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800">
+          <strong>💡 Demo Mode:</strong> Currently showing {companies.length} sample companies.
+          For full database with 50+ companies, set up Vercel Postgres and run <code className="bg-blue-100 px-2 py-1 rounded">npm run db:seed</code>.
+          See <code className="bg-blue-100 px-2 py-1 rounded">SETUP_VERCEL_POSTGRES.md</code> for instructions.
+        </p>
+      </div>
     </div>
   );
 }
