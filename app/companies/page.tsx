@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaBuilding, FaGlobe, FaMapMarkerAlt, FaFlask, FaNewspaper, FaCalendar, FaFilter } from 'react-icons/fa';
+import { FaBuilding, FaGlobe, FaMapMarkerAlt, FaFlask, FaNewspaper, FaCalendar, FaFilter, FaDownload } from 'react-icons/fa';
 import Link from 'next/link';
+import { exportCompaniesCSV } from '@/lib/csvExport';
 
 interface Company {
   id: number;
@@ -60,6 +61,26 @@ export default function CompaniesPage() {
     e.preventDefault();
   };
 
+  const handleExportCSV = () => {
+    if (companies.length === 0) {
+      alert('No companies to export');
+      return;
+    }
+    
+    // Transform data for CSV export
+    const exportData = companies.map(company => ({
+      name: company.name,
+      headquarters: company.headquarters,
+      website: company.website,
+      focusAreas: company.therapyAreas.join(', '),
+      pipelineCount: company._count.trials,
+      newsCount: company._count.newsItems,
+      foundedYear: company.foundedYear
+    }));
+    
+    exportCompaniesCSV(exportData);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center mb-8">
@@ -84,24 +105,37 @@ export default function CompaniesPage() {
           </div>
         </form>
 
-        {/* Therapy Area Filter */}
-        <div className="flex items-center space-x-4">
-          <FaFilter className="text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Filter by Therapy Area:</span>
-          <select
-            value={selectedTherapyArea}
-            onChange={(e) => setSelectedTherapyArea(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Areas</option>
-            {allTherapyAreas.map((area) => (
-              <option key={area} value={area}>
-                {area}
-              </option>
-            ))}
-          </select>
+        {/* Therapy Area Filter & Export */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <FaFilter className="text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filter by Therapy Area:</span>
+            <select
+              value={selectedTherapyArea}
+              onChange={(e) => setSelectedTherapyArea(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Areas</option>
+              {allTherapyAreas.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
+            {companies.length > 0 && (
+              <span className="text-sm text-gray-600">{companies.length} companies found</span>
+            )}
+          </div>
+          
+          {/* Export Button */}
           {companies.length > 0 && (
-            <span className="text-sm text-gray-600">{companies.length} companies found</span>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FaDownload className="mr-2" />
+              Export CSV
+            </button>
           )}
         </div>
       </div>

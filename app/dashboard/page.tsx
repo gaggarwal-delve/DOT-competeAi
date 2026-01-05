@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Activity, Search, Filter } from "lucide-react";
+import { Activity, Search, Filter, Download } from "lucide-react";
+import { exportTrialsCSV } from "@/lib/csvExport";
 
 interface Trial {
   nctId: string;
@@ -54,6 +55,14 @@ export default function DashboardPage() {
     fetchTrials();
   };
 
+  const handleExportCSV = () => {
+    if (trials.length === 0) {
+      alert("No trials to export");
+      return;
+    }
+    exportTrialsCSV(trials);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -80,11 +89,22 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Clinical Trials</h1>
-          <p className="text-gray-600">
-            Live data from ClinicalTrials.gov - {trials.length} trials loaded
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Clinical Trials</h1>
+            <p className="text-gray-600">
+              Live data from ClinicalTrials.gov - {trials.length} trials loaded
+            </p>
+          </div>
+          {trials.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </button>
+          )}
         </div>
 
         {/* Search/Filter Bar */}

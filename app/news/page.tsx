@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaNewspaper, FaExternalLinkAlt, FaClock, FaUser, FaFilter } from 'react-icons/fa';
+import { FaNewspaper, FaExternalLinkAlt, FaClock, FaUser, FaFilter, FaDownload } from 'react-icons/fa';
+import { exportNewsCSV } from '@/lib/csvExport';
 
 interface Article {
   title: string;
@@ -76,6 +77,14 @@ export default function NewsPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const handleExportCSV = () => {
+    if (news.length === 0) {
+      alert('No news to export');
+      return;
+    }
+    exportNewsCSV(news);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center mb-8">
@@ -139,22 +148,35 @@ export default function NewsPage() {
           </button>
         </div>
 
-        {/* Sort Options */}
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="publishedAt">Most Recent</option>
-            <option value="relevancy">Most Relevant</option>
-            <option value="popularity">Most Popular</option>
-          </select>
-          {totalResults > 0 && (
-            <span className="text-sm text-gray-600">
-              {totalResults.toLocaleString()} results found
-            </span>
+        {/* Sort Options & Export */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="publishedAt">Most Recent</option>
+              <option value="relevancy">Most Relevant</option>
+              <option value="popularity">Most Popular</option>
+            </select>
+            {totalResults > 0 && (
+              <span className="text-sm text-gray-600">
+                {totalResults.toLocaleString()} results found
+              </span>
+            )}
+          </div>
+          
+          {/* Export Button */}
+          {news.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FaDownload className="mr-2" />
+              Export CSV
+            </button>
           )}
         </div>
       </div>
