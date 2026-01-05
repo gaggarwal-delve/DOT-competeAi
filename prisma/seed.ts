@@ -78,9 +78,10 @@ async function main() {
   console.log('🏢 Seeding 50 pharmaceutical companies...');
   for (const company of companies) {
     const slug = company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const { foundedYear, ...companyData } = company; // Remove foundedYear field
     await prisma.company.create({
       data: {
-        ...company,
+        ...companyData,
         slug,
       },
     });
