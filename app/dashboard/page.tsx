@@ -23,20 +23,30 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchCondition, setSearchCondition] = useState("");
   const [limit, setLimit] = useState("20");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const itemsPerPage = parseInt(limit);
 
-  const fetchTrials = async () => {
+  const fetchTrials = async (page: number = 1, append: boolean = false) => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       params.append("limit", limit);
+      params.append("pageNumber", page.toString());
       if (searchCondition) params.append("condition", searchCondition);
 
       const response = await fetch(`/api/trials?${params}`);
       const data = await response.json();
 
       if (data.success) {
-        setTrials(data.trials);
+        if (append) {
+          setTrials(prev => [...prev, ...data.trials]);
+        } else {
+          setTrials(data.trials);
+        }
+        setTotalResults(data.totalResults || data.trials.length);
+        setCurrentPage(page);
       } else {
         setError(data.error || "Failed to fetch trials");
       }
@@ -47,12 +57,17 @@ export default function DashboardPage() {
     }
   };
 
+  const loadMore = () => {
+    fetchTrials(currentPage + 1, true);
+  };
+
   useEffect(() => {
     fetchTrials();
   }, []);
 
   const handleSearch = () => {
-    fetchTrials();
+    setCurrentPage(1);
+    fetchTrials(1, false);
   };
 
   const handleExportCSV = () => {
@@ -246,6 +261,40 @@ export default function DashboardPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          
+          {/* Pagination / Load More */}
+          {!loading && trials.length > 0 && trials.length >= itemsPerPage && (
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing <span className="font-semibold">{trials.length}</span> trial{trials.length !== 1 ? 's' : ''}
+                  {totalResults > trials.length && (
+                    <span> of {totalResults}+ available</span>
+                  )}
+                </div>
+                <button
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="flex items-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                >
+                  {loading ? (
+                    <>
+                      <Activity className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Load More Trials
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="mt-3 text-xs text-gray-500 text-center">
+                Page {currentPage} • Use "Load More" to fetch additional results from ClinicalTrials.gov
+              </div>
             </div>
           )}
         </div>

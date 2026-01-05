@@ -8,6 +8,7 @@ import { exportCompaniesCSV } from '@/lib/csvExport';
 interface Company {
   id: number;
   name: string;
+  slug: string;
   headquarters: string | null;
   website: string | null;
   therapyAreas: string[];
@@ -24,6 +25,8 @@ export default function CompaniesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTherapyArea, setSelectedTherapyArea] = useState('');
+  const [selectedCompanySize, setSelectedCompanySize] = useState('');
+  const [sortBy, setSortBy] = useState('name');
 
   // Extract all unique therapy areas
   const allTherapyAreas = Array.from(
@@ -38,6 +41,8 @@ export default function CompaniesPage() {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
         if (selectedTherapyArea) params.append('therapyArea', selectedTherapyArea);
+        if (selectedCompanySize) params.append('companySize', selectedCompanySize);
+        if (sortBy) params.append('sortBy', sortBy);
 
         const res = await fetch(`/api/companies?${params.toString()}`);
         if (!res.ok) {
@@ -55,7 +60,7 @@ export default function CompaniesPage() {
     };
 
     fetchCompanies();
-  }, [searchTerm, selectedTherapyArea]);
+  }, [searchTerm, selectedTherapyArea, selectedCompanySize, sortBy]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,37 +110,127 @@ export default function CompaniesPage() {
           </div>
         </form>
 
-        {/* Therapy Area Filter & Export */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        {/* Advanced Filters */}
+        <div className="space-y-4">
+          {/* Filter Row 1 */}
+          <div className="flex items-center space-x-4 flex-wrap gap-4">
             <FaFilter className="text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter by Therapy Area:</span>
-            <select
-              value={selectedTherapyArea}
-              onChange={(e) => setSelectedTherapyArea(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Areas</option>
-              {allTherapyAreas.map((area) => (
-                <option key={area} value={area}>
-                  {area}
-                </option>
-              ))}
-            </select>
+            
+            {/* Therapy Area Filter */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">Therapy Area:</span>
+              <select
+                value={selectedTherapyArea}
+                onChange={(e) => setSelectedTherapyArea(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Areas</option>
+                {allTherapyAreas.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Company Size Filter */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">Company Size:</span>
+              <select
+                value={selectedCompanySize}
+                onChange={(e) => setSelectedCompanySize(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Sizes</option>
+                <option value="big-pharma">Big Pharma (&gt;200 trials)</option>
+                <option value="biotech">Biotech (≤200 trials)</option>
+              </select>
+            </div>
+
+            {/* Sort By */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="name">Name (A-Z)</option>
+                <option value="trials">Most Trials</option>
+                <option value="news">Most News</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results Count & Export */}
+          <div className="flex items-center justify-between">
             {companies.length > 0 && (
-              <span className="text-sm text-gray-600">{companies.length} companies found</span>
+              <span className="text-sm font-semibold text-gray-700">
+                {companies.length} {companies.length === 1 ? 'company' : 'companies'} found
+              </span>
+            )}
+            
+            {/* Export Button */}
+            {companies.length > 0 && (
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <FaDownload className="mr-2" />
+                Export CSV
+              </button>
             )}
           </div>
-          
-          {/* Export Button */}
-          {companies.length > 0 && (
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FaDownload className="mr-2" />
-              Export CSV
-            </button>
+
+          {/* Active Filters Display */}
+          {(selectedTherapyArea || selectedCompanySize || searchTerm) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-medium text-gray-600">Active filters:</span>
+              {searchTerm && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full flex items-center gap-2">
+                  Search: "{searchTerm}"
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="hover:text-blue-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {selectedTherapyArea && (
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full flex items-center gap-2">
+                  {selectedTherapyArea}
+                  <button
+                    onClick={() => setSelectedTherapyArea('')}
+                    className="hover:text-purple-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {selectedCompanySize && (
+                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full flex items-center gap-2">
+                  {selectedCompanySize === 'big-pharma' ? 'Big Pharma' : 'Biotech'}
+                  <button
+                    onClick={() => setSelectedCompanySize('')}
+                    className="hover:text-green-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedTherapyArea('');
+                  setSelectedCompanySize('');
+                  setSortBy('name');
+                }}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -223,25 +318,34 @@ export default function CompaniesPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex space-x-2">
-                  {company.website && (
-                    <a
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <FaGlobe className="mr-2" />
-                      Website
-                    </a>
-                  )}
+                <div className="flex flex-col space-y-2">
                   <Link
-                    href={`/dashboard?company=${encodeURIComponent(company.name)}`}
-                    className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                    href={`/companies/${company.slug}`}
+                    className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    <FaFlask className="mr-2" />
-                    Trials
+                    <FaBuilding className="mr-2" />
+                    View Details
                   </Link>
+                  <div className="flex space-x-2">
+                    {company.website && (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        <FaGlobe className="mr-2" />
+                        Website
+                      </a>
+                    )}
+                    <Link
+                      href={`/dashboard?company=${encodeURIComponent(company.name)}`}
+                      className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      <FaFlask className="mr-2" />
+                      Trials
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

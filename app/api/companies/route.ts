@@ -7,6 +7,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get('search') || '';
   const therapyArea = searchParams.get('therapyArea') || '';
+  const companySize = searchParams.get('companySize') || ''; // 'big-pharma' or 'biotech'
+  const sortBy = searchParams.get('sortBy') || 'name'; // 'name', 'trials', 'news'
 
   try {
     const where: any = {};
@@ -24,7 +26,7 @@ export async function GET(request: Request) {
       };
     }
 
-    const companies = await prisma.company.findMany({
+    let companies = await prisma.company.findMany({
       where,
       include: {
         _count: {
@@ -34,9 +36,26 @@ export async function GET(request: Request) {
           },
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+    });
+
+    // Filter by company size (based on trial count)
+    if (companySize === 'big-pharma') {
+      // Big Pharma: typically >200 trials (large established companies)
+      companies = companies.filter(c => c._count.trials > 200);
+    } else if (companySize === 'biotech') {
+      // Biotech: typically <=200 trials (smaller/emerging companies)
+      companies = companies.filter(c => c._count.trials <= 200);
+    }
+
+    // Sort companies
+    companies.sort((a, b) => {
+      if (sortBy === 'trials') {
+        return b._count.trials - a._count.trials;
+      } else if (sortBy === 'news') {
+        return b._count.newsItems - a._count.newsItems;
+      } else {
+        return a.name.localeCompare(b.name);
+      }
     });
 
     return NextResponse.json(companies);
