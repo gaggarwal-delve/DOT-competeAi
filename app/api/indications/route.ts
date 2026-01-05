@@ -51,7 +51,12 @@ export async function GET(request: Request) {
         totalTrials: true,
         activeTrials: true,
         companiesCount: true,
-        reportTypes: true,
+        hasMarketInsight: true,
+        hasDrugInsight: true,
+        hasEpidemInsight: true,
+        mostRecentYear: true,
+        yearRange: true,
+        totalReports: true,
       },
     });
     
