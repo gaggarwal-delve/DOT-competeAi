@@ -84,34 +84,42 @@ model NewsItem {
 
 // V2: Indication-First Models
 model Indication {
-  id               Int       @id @default(autoincrement())
-  name             String    @unique
-  slug             String    @unique
-  category         String    // Therapeutic Area (TA)
-  description      String?   @db.Text
+  id                  Int       @id @default(autoincrement())
+  name                String    @unique
+  slug                String    @unique
+  category            String    // Therapeutic Area (TA)
+  description         String?   @db.Text
   
-  // Report types available (JSON array)
-  reportTypes      String[]
+  // Report types available (from universal table)
+  hasMarketInsight    Boolean   @default(false)
+  hasDrugInsight      Boolean   @default(false)
+  hasEpidemInsight    Boolean   @default(false)
+  mostRecentYear      Int?
+  yearRange           String?
+  totalReports        Int       @default(0)
   
-  // Aggregated metrics (calculated)
-  totalTrials      Int       @default(0)
-  activeTrials     Int       @default(0)
-  companiesCount   Int       @default(0)
+  // Aggregated metrics (calculated from live data)
+  totalTrials         Int       @default(0)
+  activeTrials        Int       @default(0)
+  companiesCount      Int       @default(0)
   
   // Market data (optional)
-  marketSize       Float?
-  growthRate       Float?
+  marketSize          Float?
+  growthRate          Float?
   
   // Relations
-  trials           IndicationTrial[]
-  companies        IndicationCompany[]
+  trials              IndicationTrial[]
+  companies           IndicationCompany[]
   
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   
   @@index([slug])
   @@index([category])
   @@index([name])
+  @@index([hasMarketInsight])
+  @@index([hasDrugInsight])
+  @@index([hasEpidemInsight])
 }
 
 // Many-to-many: Indication <-> Clinical Trial

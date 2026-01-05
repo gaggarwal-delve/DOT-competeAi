@@ -17,7 +17,12 @@ interface Indication {
   totalTrials: number;
   activeTrials: number;
   companiesCount: number;
-  reportTypes: string[];
+  hasMarketInsight: boolean;
+  hasDrugInsight: boolean;
+  hasEpidemInsight: boolean;
+  mostRecentYear: number | null;
+  yearRange: string | null;
+  totalReports: number;
 }
 
 type TabType = "overview" | "trials" | "companies" | "news" | "analysis";
@@ -111,14 +116,39 @@ export default function IndicationDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{indication.name}</h1>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-3 text-sm flex-wrap">
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
                   {indication.category}
                 </span>
-                {indication.reportTypes.length > 0 && (
+                
+                {/* Insight Badges */}
+                {indication.hasMarketInsight && (
+                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                    ✓ Market Insight
+                  </span>
+                )}
+                {indication.hasDrugInsight && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                    ✓ Drug Insight
+                  </span>
+                )}
+                {indication.hasEpidemInsight && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                    ✓ Epidem Insight
+                  </span>
+                )}
+                
+                {/* Year Info */}
+                {indication.mostRecentYear && (
                   <span className="text-gray-600 flex items-center gap-1">
                     <FileText className="w-4 h-4" />
-                    {indication.reportTypes.join(', ')}
+                    {indication.yearRange || indication.mostRecentYear}
+                  </span>
+                )}
+                
+                {indication.totalReports > 0 && (
+                  <span className="text-gray-500 text-xs">
+                    {indication.totalReports} {indication.totalReports === 1 ? 'report' : 'reports'}
                   </span>
                 )}
               </div>
@@ -215,28 +245,80 @@ function OverviewTab({ indication }: { indication: Indication }) {
           {indication.description || `Comprehensive overview of ${indication.name} including clinical trials, competitive landscape, and market intelligence.`}
         </p>
         
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <div className="grid md:grid-cols-3 gap-6 mt-6">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Report Types Available</h3>
-            <ul className="space-y-1">
-              {indication.reportTypes.length > 0 ? (
-                indication.reportTypes.map((type) => (
-                  <li key={type} className="text-sm text-gray-600">✓ {type}</li>
-                ))
-              ) : (
-                <li className="text-sm text-gray-500 italic">No reports available yet</li>
-              )}
+            <h3 className="font-semibold text-gray-900 mb-3">Available Insights</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {indication.hasMarketInsight ? (
+                  <>
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="text-sm text-gray-700">Market Insight</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-gray-400">○</span>
+                    <span className="text-sm text-gray-400">Market Insight</span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {indication.hasDrugInsight ? (
+                  <>
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="text-sm text-gray-700">Drug/Pipeline Insight</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-gray-400">○</span>
+                    <span className="text-sm text-gray-400">Drug/Pipeline Insight</span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {indication.hasEpidemInsight ? (
+                  <>
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="text-sm text-gray-700">Epidemiology Insight</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-gray-400">○</span>
+                    <span className="text-sm text-gray-400">Epidemiology Insight</span>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {indication.totalReports > 0 && (
+              <p className="text-xs text-gray-500 mt-3">
+                {indication.totalReports} total {indication.totalReports === 1 ? 'report' : 'reports'}
+              </p>
+            )}
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-3">Clinical Trial Data</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><strong className="text-gray-900">{indication.totalTrials}</strong> Total Trials</li>
+              <li><strong className="text-gray-900">{indication.activeTrials}</strong> Active Trials</li>
+              <li><strong className="text-gray-900">{indication.companiesCount}</strong> Companies</li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Quick Stats</h3>
-            <ul className="space-y-1 text-sm text-gray-600">
-              <li>Total Trials: {indication.totalTrials}</li>
-              <li>Active Trials: {indication.activeTrials}</li>
-              <li>Companies: {indication.companiesCount}</li>
-              <li>Therapeutic Area: {indication.category}</li>
-            </ul>
+            <h3 className="font-semibold text-gray-900 mb-3">Publication Info</h3>
+            {indication.mostRecentYear ? (
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>Latest: <strong className="text-gray-900">{indication.mostRecentYear}</strong></li>
+                {indication.yearRange && (
+                  <li>Range: <strong className="text-gray-900">{indication.yearRange}</strong></li>
+                )}
+                <li>Category: <strong className="text-gray-900">{indication.category}</strong></li>
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500 italic">Year data not available</p>
+            )}
           </div>
         </div>
       </div>
