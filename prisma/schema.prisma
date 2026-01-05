@@ -19,6 +19,7 @@ model Company {
   
   trials           ClinicalTrial[]
   newsItems        NewsItem[]
+  indications      IndicationCompany[]  // V2: Link to indications
   
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -79,5 +80,77 @@ model NewsItem {
   
   @@index([category])
   @@index([publishedDate])
+}
+
+// V2: Indication-First Models
+model Indication {
+  id               Int       @id @default(autoincrement())
+  name             String    @unique
+  slug             String    @unique
+  category         String    // Therapeutic Area (TA)
+  description      String?   @db.Text
+  
+  // Report types available (JSON array)
+  reportTypes      String[]
+  
+  // Aggregated metrics (calculated)
+  totalTrials      Int       @default(0)
+  activeTrials     Int       @default(0)
+  companiesCount   Int       @default(0)
+  
+  // Market data (optional)
+  marketSize       Float?
+  growthRate       Float?
+  
+  // Relations
+  trials           IndicationTrial[]
+  companies        IndicationCompany[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index([slug])
+  @@index([category])
+  @@index([name])
+}
+
+// Many-to-many: Indication <-> Clinical Trial
+model IndicationTrial {
+  id              Int            @id @default(autoincrement())
+  
+  indicationId    Int
+  indication      Indication     @relation(fields: [indicationId], references: [id], onDelete: Cascade)
+  
+  trialNctId      String
+  
+  isPrimary       Boolean        @default(true)  // Primary vs secondary indication
+  
+  createdAt       DateTime       @default(now())
+  
+  @@unique([indicationId, trialNctId])
+  @@index([indicationId])
+  @@index([trialNctId])
+}
+
+// Many-to-many: Indication <-> Company (with metrics)
+model IndicationCompany {
+  id                 Int         @id @default(autoincrement())
+  
+  indicationId       Int
+  indication         Indication  @relation(fields: [indicationId], references: [id], onDelete: Cascade)
+  
+  companyId          Int
+  company            Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Aggregated metrics
+  trialsCount        Int         @default(0)
+  phases             String[]    // ["Phase 2", "Phase 3"]
+  pipelineStrength   Float?      // Calculated score
+  
+  updatedAt          DateTime    @updatedAt
+  
+  @@unique([indicationId, companyId])
+  @@index([indicationId])
+  @@index([companyId])
 }
 
