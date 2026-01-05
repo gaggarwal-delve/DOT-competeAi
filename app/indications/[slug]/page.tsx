@@ -252,29 +252,229 @@ function OverviewTab({ indication }: { indication: Indication }) {
 }
 
 function TrialsTab({ indicationSlug }: { indicationSlug: string }) {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Clinical Trials</h2>
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-        <p className="text-yellow-800 font-medium mb-2">🔗 Linking Trials to Indications</p>
-        <p className="text-sm text-yellow-700">
-          This feature requires linking clinical trial "conditions" to our indication database. Coming in next step.
-        </p>
+  const [trials, setTrials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTrials = async () => {
+      setLoading(true);
+      try {
+        // Get indication name first
+        const indResponse = await fetch(`/api/indications/${indicationSlug}`);
+        const indData = await indResponse.json();
+        
+        if (indData.success) {
+          const indicationName = indData.indication.name;
+          
+          // Fetch trials from ClinicalTrials.gov API filtered by indication name as condition
+          const trialsResponse = await fetch(`/api/trials?condition=${encodeURIComponent(indicationName)}&limit=20`);
+          const trialsData = await trialsResponse.json();
+          
+          if (trialsData.success) {
+            setTrials(trialsData.trials || []);
+          } else {
+            setError(trialsData.message || 'Failed to load trials');
+          }
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to load trials');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTrials();
+  }, [indicationSlug]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+        <p className="text-gray-600">Loading trials...</p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <p className="text-red-800">Error: {error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-900">Clinical Trials ({trials.length})</h2>
+        <Link
+          href={`/dashboard?search=${indicationSlug}`}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          View all →
+        </Link>
+      </div>
+      
+      {trials.length === 0 ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-gray-600">No trials found for this indication.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {trials.slice(0, 10).map((trial: any) => (
+            <div key={trial.nctId} className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-gray-900 text-lg flex-1 pr-4">{trial.title}</h3>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                  trial.status === 'Recruiting' ? 'bg-green-100 text-green-700' :
+                  trial.status === 'Active, not recruiting' ? 'bg-blue-100 text-blue-700' :
+                  trial.status === 'Completed' ? 'bg-gray-100 text-gray-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {trial.status}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
+                <div>
+                  <span className="text-gray-500">Phase:</span>
+                  <p className="font-medium text-gray-900">{trial.phase || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Sponsor:</span>
+                  <p className="font-medium text-gray-900">{trial.sponsor || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Enrollment:</span>
+                  <p className="font-medium text-gray-900">{trial.enrollmentCount || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Start Date:</span>
+                  <p className="font-medium text-gray-900">{trial.startDate ? new Date(trial.startDate).toLocaleDateString() : 'N/A'}</p>
+                </div>
+              </div>
+              
+              {trial.conditions && trial.conditions.length > 0 && (
+                <div className="mb-2">
+                  <span className="text-xs text-gray-500">Conditions: </span>
+                  <span className="text-xs text-gray-700">{trial.conditions.slice(0, 3).join(', ')}</span>
+                </div>
+              )}
+              
+              <a
+                href={`https://clinicaltrials.gov/study/${trial.nctId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline"
+              >
+                View on ClinicalTrials.gov →
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function CompaniesTab({ indicationSlug }: { indicationSlug: string }) {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Companies Working on This Indication</h2>
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-        <p className="text-yellow-800 font-medium mb-2">🔗 Linking Companies to Indications</p>
-        <p className="text-sm text-yellow-700">
-          This feature requires analyzing which companies are working on trials for this indication. Coming in next step.
-        </p>
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      setLoading(true);
+      try {
+        // Get indication name first
+        const indResponse = await fetch(`/api/indications/${indicationSlug}`);
+        const indData = await indResponse.json();
+        
+        if (indData.success) {
+          const indicationName = indData.indication.name;
+          
+          // Fetch trials for this indication
+          const trialsResponse = await fetch(`/api/trials?condition=${encodeURIComponent(indicationName)}&limit=100`);
+          const trialsData = await trialsResponse.json();
+          
+          if (trialsData.success && trialsData.trials) {
+            // Extract unique sponsors and their trial counts
+            const sponsorMap = new Map<string, { trials: number; phases: Set<string> }>();
+            
+            trialsData.trials.forEach((trial: any) => {
+              const sponsor = trial.sponsor || 'Unknown';
+              if (!sponsorMap.has(sponsor)) {
+                sponsorMap.set(sponsor, { trials: 0, phases: new Set() });
+              }
+              const data = sponsorMap.get(sponsor)!;
+              data.trials++;
+              if (trial.phase) data.phases.add(trial.phase);
+            });
+            
+            // Convert to array and sort by trial count
+            const companiesData = Array.from(sponsorMap.entries())
+              .map(([name, data]) => ({
+                name,
+                trialsCount: data.trials,
+                phases: Array.from(data.phases).join(', '),
+              }))
+              .sort((a, b) => b.trialsCount - a.trialsCount);
+            
+            setCompanies(companiesData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching companies:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCompanies();
+  }, [indicationSlug]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+        <p className="text-gray-600">Loading companies...</p>
       </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-gray-900 mb-6">Companies Working on This Indication ({companies.length})</h2>
+      
+      {companies.length === 0 ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-gray-600">No companies found for this indication.</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {companies.map((company, idx) => (
+            <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 text-lg">{company.name}</h3>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  {company.trialsCount} {company.trialsCount === 1 ? 'trial' : 'trials'}
+                </span>
+              </div>
+              
+              <div className="text-sm text-gray-600">
+                <p><strong>Phases:</strong> {company.phases || 'N/A'}</p>
+              </div>
+              
+              <Link
+                href={`/companies?search=${encodeURIComponent(company.name)}`}
+                className="text-sm text-blue-600 hover:underline mt-2 inline-block"
+              >
+                View company profile →
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
