@@ -1,30 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
+import { generateAICompletion, AIProvider } from '@/lib/aiProviders';
 
 export async function POST(request: NextRequest) {
   try {
-    const { type, data } = await request.json();
+    const { type, data, provider = 'openai' } = await request.json();
 
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    let summary = '';
+    let result;
 
     if (type === 'trial') {
-      summary = await summarizeTrial(data);
+      result = await summarizeTrial(data, provider as AIProvider);
     } else if (type === 'company') {
-      summary = await summarizeCompany(data);
+      result = await summarizeCompany(data, provider as AIProvider);
     } else if (type === 'news') {
-      summary = await summarizeNews(data);
+      result = await summarizeNews(data, provider as AIProvider);
     } else {
       return NextResponse.json(
         { error: 'Invalid summary type. Must be "trial", "company", or "news"' },
@@ -32,7 +20,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ summary });
+    return NextResponse.json({
+      summary: result.content,
+      provider: result.provider,
+      model: result.model,
+      tokensUsed: result.tokensUsed,
+      estimatedCost: result.estimatedCost,
+    });
   } catch (error: any) {
     console.error('AI summarization error:', error);
     return NextResponse.json(
@@ -42,8 +36,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function summarizeTrial(trial: any): Promise<string> {
-  const prompt = `Summarize this clinical trial in 3 concise bullet points:
+async function summarizeTrial(trial: any, provider: AIProvider) {
+  const systemPrompt = 'You are a pharmaceutical intelligence analyst. Provide clear, concise summaries of clinical trials for industry professionals.';
+  
+  const userPrompt = `Summarize this clinical trial in 3 concise bullet points:
 
 Title: ${trial.title}
 Phase: ${trial.phase || 'Not specified'}
@@ -60,27 +56,19 @@ Focus on:
 
 Keep each bullet point under 25 words. Be specific and actionable.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini', // Faster and cheaper than gpt-4
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a pharmaceutical intelligence analyst. Provide clear, concise summaries of clinical trials for industry professionals.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    temperature: 0.3, // Lower temperature for more factual output
-    max_tokens: 200,
+  return await generateAICompletion({
+    provider,
+    systemPrompt,
+    userPrompt,
+    temperature: 0.3,
+    maxTokens: 200,
   });
-
-  return response.choices[0].message.content || 'Summary generation failed';
 }
 
-async function summarizeCompany(company: any): Promise<string> {
-  const prompt = `Summarize this pharmaceutical company in 3 concise bullet points:
+async function summarizeCompany(company: any, provider: AIProvider) {
+  const systemPrompt = 'You are a pharmaceutical intelligence analyst. Provide clear, concise company profiles for industry professionals.';
+  
+  const userPrompt = `Summarize this pharmaceutical company in 3 concise bullet points:
 
 Company: ${company.name}
 Headquarters: ${company.headquarters || 'Unknown'}
@@ -96,27 +84,19 @@ Focus on:
 
 Keep each bullet point under 25 words.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a pharmaceutical intelligence analyst. Provide clear, concise company profiles for industry professionals.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
+  return await generateAICompletion({
+    provider,
+    systemPrompt,
+    userPrompt,
     temperature: 0.3,
-    max_tokens: 200,
+    maxTokens: 200,
   });
-
-  return response.choices[0].message.content || 'Summary generation failed';
 }
 
-async function summarizeNews(article: any): Promise<string> {
-  const prompt = `Summarize this pharmaceutical news article in 2 concise bullet points:
+async function summarizeNews(article: any, provider: AIProvider) {
+  const systemPrompt = 'You are a pharmaceutical intelligence analyst. Provide clear, concise news summaries for industry professionals.';
+  
+  const userPrompt = `Summarize this pharmaceutical news article in 2 concise bullet points:
 
 Title: ${article.title}
 Source: ${article.source || 'Unknown'}
@@ -128,22 +108,12 @@ Focus on:
 
 Keep each bullet point under 25 words. Focus on actionable insights.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a pharmaceutical intelligence analyst. Provide clear, concise news summaries for industry professionals.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
+  return await generateAICompletion({
+    provider,
+    systemPrompt,
+    userPrompt,
     temperature: 0.3,
-    max_tokens: 150,
+    maxTokens: 150,
   });
-
-  return response.choices[0].message.content || 'Summary generation failed';
 }
 
