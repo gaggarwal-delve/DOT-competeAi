@@ -6,6 +6,7 @@ import { Activity, Search, Filter, Download } from "lucide-react";
 import { exportTrialsCSV } from "@/lib/csvExport";
 import { PhaseDistributionChart } from "@/components/PhaseDistributionChart";
 import { StatusBreakdownChart } from "@/components/StatusBreakdownChart";
+import { AISummary } from "@/components/AISummary";
 
 interface Trial {
   nctId: string;
@@ -417,6 +418,9 @@ export default function DashboardPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Enrollment
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      AI Summary
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -463,6 +467,9 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {trial.enrollmentCount ? trial.enrollmentCount.toLocaleString() : "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <AISummary type="trial" data={trial} compact />
                       </td>
                     </tr>
                   ))}
