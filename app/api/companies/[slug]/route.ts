@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    // Await params in Next.js 15+
+    const { slug } = await params;
 
     // Fetch company by slug with trial and news counts
     const company = await prisma.company.findUnique({
