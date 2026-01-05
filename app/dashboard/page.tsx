@@ -28,6 +28,11 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const itemsPerPage = parseInt(limit);
+  
+  // New filters
+  const [selectedPhases, setSelectedPhases] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const fetchTrials = async (page: number = 1, append: boolean = false) => {
     setLoading(true);
@@ -80,10 +85,35 @@ export default function DashboardPage() {
     exportTrialsCSV(trials);
   };
 
-  // Calculate phase distribution
+  // Filter trials based on selected phases and date range
+  const filteredTrials = useMemo(() => {
+    let filtered = trials;
+    
+    // Filter by selected phases
+    if (selectedPhases.length > 0) {
+      filtered = filtered.filter(trial => 
+        selectedPhases.includes(trial.phase || 'Unknown')
+      );
+    }
+    
+    // Filter by date range
+    if (dateFrom || dateTo) {
+      filtered = filtered.filter(trial => {
+        if (!trial.startDate) return false;
+        const trialDate = new Date(trial.startDate);
+        if (dateFrom && trialDate < new Date(dateFrom)) return false;
+        if (dateTo && trialDate > new Date(dateTo)) return false;
+        return true;
+      });
+    }
+    
+    return filtered;
+  }, [trials, selectedPhases, dateFrom, dateTo]);
+
+  // Calculate phase distribution from filtered trials
   const phaseDistribution = useMemo(() => {
     const phaseCounts: Record<string, number> = {};
-    trials.forEach(trial => {
+    filteredTrials.forEach(trial => {
       const phase = trial.phase || 'Unknown';
       phaseCounts[phase] = (phaseCounts[phase] || 0) + 1;
     });
@@ -96,12 +126,12 @@ export default function DashboardPage() {
         phase,
         count: phaseCounts[phase]
       }));
-  }, [trials]);
+  }, [filteredTrials]);
 
-  // Calculate status distribution
+  // Calculate status distribution from filtered trials
   const statusDistribution = useMemo(() => {
     const statusCounts: Record<string, number> = {};
-    trials.forEach(trial => {
+    filteredTrials.forEach(trial => {
       const status = trial.status || 'Unknown';
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
@@ -112,7 +142,32 @@ export default function DashboardPage() {
         count
       }))
       .sort((a, b) => b.count - a.count); // Sort by count descending
+  }, [filteredTrials]);
+
+  // Available phases for multi-select
+  const availablePhases = useMemo(() => {
+    const phases = new Set<string>();
+    trials.forEach(trial => {
+      phases.add(trial.phase || 'Unknown');
+    });
+    return Array.from(phases).sort();
   }, [trials]);
+
+  // Toggle phase selection
+  const togglePhase = (phase: string) => {
+    setSelectedPhases(prev =>
+      prev.includes(phase)
+        ? prev.filter(p => p !== phase)
+        : [...prev, phase]
+    );
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedPhases([]);
+    setDateFrom("");
+    setDateTo("");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -144,7 +199,8 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Clinical Trials</h1>
             <p className="text-gray-600">
-              Live data from ClinicalTrials.gov - {trials.length} trials loaded
+              Live data from ClinicalTrials.gov - {filteredTrials.length} of {trials.length} trials
+              {(selectedPhases.length > 0 || dateFrom || dateTo) && ' (filtered)'}
             </p>
           </div>
           {trials.length > 0 && (
@@ -204,6 +260,113 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Advanced Filters */}
+        {trials.length > 0 && !loading && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+              {(selectedPhases.length > 0 || dateFrom || dateTo) && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Multi-select Phases */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Filter by Phase ({selectedPhases.length} selected)
+                </label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  {availablePhases.map((phase) => (
+                    <label key={phase} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedPhases.includes(phase)}
+                        onChange={() => togglePhase(phase)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{phase}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Date Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Start Date From
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Start Date To
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            
+            {/* Active Filter Tags */}
+            {(selectedPhases.length > 0 || dateFrom || dateTo) && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="text-sm text-gray-600">Active filters:</span>
+                {selectedPhases.map((phase) => (
+                  <span
+                    key={phase}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                  >
+                    {phase}
+                    <button
+                      onClick={() => togglePhase(phase)}
+                      className="hover:text-blue-900"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+                {dateFrom && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    From: {dateFrom}
+                    <button
+                      onClick={() => setDateFrom("")}
+                      className="hover:text-green-900"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                )}
+                {dateTo && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    To: {dateTo}
+                    <button
+                      onClick={() => setDateTo("")}
+                      className="hover:text-green-900"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Analytics Charts */}
         {trials.length > 0 && !loading && (
           <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -257,7 +420,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {trials.map((trial) => (
+                  {filteredTrials.map((trial) => (
                     <tr key={trial.nctId} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <a
