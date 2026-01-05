@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Activity, Search, Filter, Download } from "lucide-react";
 import { exportTrialsCSV } from "@/lib/csvExport";
+import { PhaseDistributionChart } from "@/components/PhaseDistributionChart";
+import { StatusBreakdownChart } from "@/components/StatusBreakdownChart";
 
 interface Trial {
   nctId: string;
@@ -77,6 +79,40 @@ export default function DashboardPage() {
     }
     exportTrialsCSV(trials);
   };
+
+  // Calculate phase distribution
+  const phaseDistribution = useMemo(() => {
+    const phaseCounts: Record<string, number> = {};
+    trials.forEach(trial => {
+      const phase = trial.phase || 'Unknown';
+      phaseCounts[phase] = (phaseCounts[phase] || 0) + 1;
+    });
+    
+    // Sort by phase order
+    const phaseOrder = ['Early Phase 1', 'Phase 1', 'Phase 1/Phase 2', 'Phase 2', 'Phase 2/Phase 3', 'Phase 3', 'Phase 4', 'Not Applicable', 'Unknown'];
+    return phaseOrder
+      .filter(phase => phaseCounts[phase])
+      .map(phase => ({
+        phase,
+        count: phaseCounts[phase]
+      }));
+  }, [trials]);
+
+  // Calculate status distribution
+  const statusDistribution = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    trials.forEach(trial => {
+      const status = trial.status || 'Unknown';
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    
+    return Object.entries(statusCounts)
+      .map(([status, count]) => ({
+        status,
+        count
+      }))
+      .sort((a, b) => b.count - a.count); // Sort by count descending
+  }, [trials]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,6 +203,14 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Analytics Charts */}
+        {trials.length > 0 && !loading && (
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <PhaseDistributionChart data={phaseDistribution} />
+            <StatusBreakdownChart data={statusDistribution} />
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
