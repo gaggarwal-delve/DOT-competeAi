@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, TrendingUp, Database, ChevronRight, Loader2 } from "lucide-react";
+import { Search, TrendingUp, Database, ChevronRight, Loader2, Activity, Clock, BarChart3, ArrowRight } from "lucide-react";
 
 interface Indication {
   id: number;
@@ -12,6 +12,17 @@ interface Indication {
   totalTrials: number;
   activeTrials: number;
   companiesCount: number;
+  therapeuticArea?: string;
+  mostRecentYear?: number;
+  yearRange?: string;
+  trialCount?: number;
+}
+
+interface TherapeuticArea {
+  name: string;
+  indicationCount: number;
+  totalReports: number;
+  mostRecentYear: number | null;
 }
 
 interface CategoryGroup {
@@ -28,26 +39,48 @@ export default function Home() {
   const [popularIndications, setPopularIndications] = useState<Indication[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingIndications, setLoadingIndications] = useState(false);
+  
+  // New insights state
+  const [recentIndications, setRecentIndications] = useState<Indication[]>([]);
+  const [therapeuticAreas, setTherapeuticAreas] = useState<TherapeuticArea[]>([]);
+  const [loadingInsights, setLoadingInsights] = useState(true);
 
-  // Fetch categories on mount
+  // Fetch categories and insights on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/indications?limit=12&orderBy=name');
-        const data = await response.json();
+        // Fetch indications and categories
+        const [indicationsRes, recentRes, taRes] = await Promise.all([
+          fetch('/api/indications?limit=12&orderBy=name'),
+          fetch('/api/insights/recent-indications?limit=50'),
+          fetch('/api/insights/therapeutic-areas'),
+        ]);
         
-        if (data.success) {
-          setPopularIndications(data.indications || []);
-          setCategories(data.categories || []);
+        const indicationsData = await indicationsRes.json();
+        const recentData = await recentRes.json();
+        const taData = await taRes.json();
+        
+        if (indicationsData.success) {
+          setPopularIndications(indicationsData.indications || []);
+          setCategories(indicationsData.categories || []);
+        }
+        
+        if (recentData.success) {
+          setRecentIndications(recentData.indications || []);
+        }
+        
+        if (taData.success) {
+          setTherapeuticAreas(taData.therapeuticAreas || []);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        setLoadingInsights(false);
       }
     };
     
-    fetchCategories();
+    fetchData();
   }, []);
 
   // Fetch indications when TA is selected
@@ -220,14 +253,101 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Popular Indications */}
-        {loading ? (
+        {/* Insights Sections */}
+        {loadingInsights ? (
           <div className="text-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-            <p className="text-gray-600 mt-4">Loading indications...</p>
+            <p className="text-gray-600 mt-4">Loading insights...</p>
           </div>
         ) : (
           <>
+            {/* Most Active Therapeutic Areas */}
+            <div className="max-w-6xl mx-auto mb-12">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-purple-600" />
+                  Most Active Therapeutic Areas
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">Ranked by number of indications and research reports</p>
+                
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                  {therapeuticAreas.slice(0, 30).map((ta, idx) => (
+                    <Link
+                      key={ta.name}
+                      href={`/indications?category=${encodeURIComponent(ta.name)}`}
+                      className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-purple-100 hover:border-purple-300 group"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">
+                          #{idx + 1}
+                        </span>
+                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition" />
+                      </div>
+                      <p className="font-semibold text-gray-900 group-hover:text-purple-700 transition mb-2 line-clamp-2">
+                        {ta.name}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-600">
+                        <span>{ta.indicationCount} indications</span>
+                        <span>{ta.totalReports} reports</span>
+                      </div>
+                      {ta.mostRecentYear && (
+                        <p className="text-xs text-gray-500 mt-1">Latest: {ta.mostRecentYear}</p>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Recently Updated Indications */}
+            <div className="max-w-6xl mx-auto mb-12">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Clock className="w-6 h-6 text-green-600" />
+                  Recently Updated Indications
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">Latest published research and reports (2020-2035)</p>
+                
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                  {recentIndications.slice(0, 50).map((indication, idx) => (
+                    <Link
+                      key={indication.id}
+                      href={`/indications/${indication.slug}`}
+                      className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-green-100 hover:border-green-300 group"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-bold">
+                          #{idx + 1}
+                        </span>
+                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                          {indication.mostRecentYear}
+                        </span>
+                      </div>
+                      <p className="font-semibold text-gray-900 group-hover:text-green-700 transition mb-2 line-clamp-2">
+                        {indication.name}
+                      </p>
+                      <p className="text-xs text-gray-500 mb-2">{indication.therapeuticArea}</p>
+                      <div className="flex items-center gap-2 text-xs">
+                        {indication.hasMarketInsight && (
+                          <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Market</span>
+                        )}
+                        {indication.hasDrugInsight && (
+                          <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Drug</span>
+                        )}
+                        {indication.hasEpidemInsight && (
+                          <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Epidem</span>
+                        )}
+                      </div>
+                      {indication.yearRange && (
+                        <p className="text-xs text-gray-500 mt-2">Range: {indication.yearRange}</p>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Popular Indications */}
             <div className="max-w-6xl mx-auto mb-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-blue-600" />
