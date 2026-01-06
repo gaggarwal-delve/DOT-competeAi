@@ -79,7 +79,7 @@ function InsightsDashboard({
       
       {/* Tab Content */}
       {activeTab === 'areas' && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+        <div className="grid md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
           {therapeuticAreas.slice(0, 30).map((ta, idx) => (
             <Link
               key={ta.name}
@@ -108,7 +108,7 @@ function InsightsDashboard({
       )}
       
       {activeTab === 'indications' && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+        <div className="grid md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
           {recentIndications.slice(0, 50).map((indication, idx) => (
             <Link
               key={indication.id}
@@ -265,129 +265,115 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <div className="max-w-5xl mx-auto text-center mb-12">
-          <h2 className="text-5xl font-bold text-gray-900 mb-4">
-            Select Your <span className="text-blue-600">Indication</span>
-          </h2>
-          <p className="text-xl text-gray-600 mb-10">
-            Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
-          </p>
-          
-          {/* 2-Step Selection */}
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Step 1: Select Therapeutic Area */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Compact Hero Section - Top 1/3 */}
+        <div className="max-w-6xl mx-auto mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Select Your <span className="text-blue-600">Indication</span>
+              </h2>
+              <p className="text-sm text-gray-600">
+                Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
+              </p>
+            </div>
+            
+            {/* 2-Step Selection - Horizontal */}
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div className="relative">
-                <label className="block text-left text-sm font-semibold text-gray-700 mb-3">
-                  <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs mr-2">1</span>
+                <label className="block text-left text-xs font-semibold text-gray-700 mb-2">
+                  <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white rounded-full text-xs mr-1.5">1</span>
                   Select Therapeutic Area
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedTA}
-                    onChange={(e) => {
-                      setSelectedTA(e.target.value);
-                      setSelectedIndication("");
-                    }}
-                    className="w-full pl-4 pr-10 py-4 text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer"
-                  >
-                    <option value="">-- Choose a Therapeutic Area --</option>
-                    {categories.map((cat) => (
-                      <option key={cat.name} value={cat.name}>
-                        {cat.name} ({cat.count} indications)
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 w-5 h-5 pointer-events-none" />
-                </div>
+                <select
+                  value={selectedTA}
+                  onChange={(e) => {
+                    setSelectedTA(e.target.value);
+                    setSelectedIndication("");
+                  }}
+                  className="w-full pl-3 pr-8 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer"
+                >
+                  <option value="">-- Choose a Therapeutic Area --</option>
+                  {categories.map((cat) => (
+                    <option key={cat.name} value={cat.name}>
+                      {cat.name} ({cat.count})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Step 2: Select Indication */}
               <div className="relative">
-                <label className="block text-left text-sm font-semibold text-gray-700 mb-3">
-                  <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs mr-2">2</span>
+                <label className="block text-left text-xs font-semibold text-gray-700 mb-2">
+                  <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white rounded-full text-xs mr-1.5">2</span>
                   Select Indication
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedIndication}
-                    onChange={(e) => setSelectedIndication(e.target.value)}
-                    disabled={!selectedTA || loadingIndications}
-                    className="w-full pl-4 pr-10 py-4 text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  >
-                    {!selectedTA ? (
-                      <option value="">Select TA first →</option>
-                    ) : loadingIndications ? (
-                      <option value="">Loading indications...</option>
-                    ) : filteredIndications.length === 0 ? (
-                      <option value="">No indications found</option>
-                    ) : (
-                      <>
-                        <option value="">-- Choose an Indication --</option>
-                        {filteredIndications.map((indication) => (
-                          <option key={indication.id} value={indication.slug}>
-                            {indication.name}
-                          </option>
-                        ))}
-                      </>
-                    )}
-                  </select>
-                  <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 w-5 h-5 pointer-events-none" />
-                </div>
+                <select
+                  value={selectedIndication}
+                  onChange={(e) => setSelectedIndication(e.target.value)}
+                  disabled={!selectedTA || loadingIndications}
+                  className="w-full pl-3 pr-8 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                >
+                  {!selectedTA ? (
+                    <option value="">Select TA first →</option>
+                  ) : loadingIndications ? (
+                    <option value="">Loading...</option>
+                  ) : filteredIndications.length === 0 ? (
+                    <option value="">No indications found</option>
+                  ) : (
+                    <>
+                      <option value="">-- Choose an Indication --</option>
+                      {filteredIndications.map((indication) => (
+                        <option key={indication.id} value={indication.slug}>
+                          {indication.name}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
               </div>
             </div>
 
-            {/* Search Link */}
-            <div className="mt-6">
+            {/* Stats - Compact Horizontal */}
+            <div className="flex items-center justify-center gap-8 py-3 border-t border-gray-100">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">6,067</p>
+                <p className="text-xs text-gray-600">Indications</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">10,000+</p>
+                <p className="text-xs text-gray-600">Clinical Trials</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">50+</p>
+                <p className="text-xs text-gray-600">Companies</p>
+              </div>
               <Link
                 href="/indications"
-                className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
+                className="text-xs text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
               >
-                <Search className="w-4 h-4" />
-                Or browse & search all 5,600+ indications
+                <Search className="w-3 h-3" />
+                Browse All
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <Database className="w-10 h-10 text-blue-600 mb-3" />
-            <p className="text-3xl font-bold text-gray-900">6,067</p>
-            <p className="text-sm text-gray-600">Indications</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <TrendingUp className="w-10 h-10 text-green-600 mb-3" />
-            <p className="text-3xl font-bold text-gray-900">10,000+</p>
-            <p className="text-sm text-gray-600">Clinical Trials</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <Database className="w-10 h-10 text-purple-600 mb-3" />
-            <p className="text-3xl font-bold text-gray-900">50+</p>
-            <p className="text-sm text-gray-600">Companies</p>
-          </div>
-        </div>
-
-        {/* Insights Dashboard with Tabs */}
+        {/* Bottom 2/3: Side-by-Side Panels */}
         {loadingInsights ? (
           <div className="text-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
             <p className="text-gray-600 mt-4">Loading insights...</p>
           </div>
         ) : (
-          <>
-            <div className="max-w-6xl mx-auto mb-12">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Left Panel: Intelligence Dashboard */}
               <InsightsDashboard 
                 therapeuticAreas={therapeuticAreas}
                 recentIndications={recentIndications}
               />
-            </div>
 
-            {/* Quick Browse Panel */}
-            <div className="max-w-6xl mx-auto">
+              {/* Right Panel: Quick Browse */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                   <Search className="w-6 h-6 text-blue-600" />
@@ -395,14 +381,14 @@ export default function Home() {
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">Choose your exploration path</p>
                 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2">
                   {/* Path 1: By Therapeutic Area */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-200">
-                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
+                    <h4 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                       <Database className="w-5 h-5 text-blue-600" />
                       Browse by Therapeutic Area
                     </h4>
-                    <p className="text-sm text-gray-600 mb-4">Explore {categories.length}+ therapeutic areas and their indications</p>
+                    <p className="text-xs text-gray-600 mb-3">Explore {categories.length}+ therapeutic areas and their indications</p>
                     <Link
                       href="/indications"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm w-full justify-center"
@@ -410,10 +396,10 @@ export default function Home() {
                       View All Indications <ChevronRight className="w-4 h-4" />
                     </Link>
                     
-                    {/* Top 6 Categories */}
-                    <div className="mt-4 space-y-2">
-                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Top Areas:</p>
-                      {categories.slice(0, 6).map((cat, idx) => (
+                    {/* Top Categories */}
+                    <div className="mt-3 space-y-1.5">
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Top Areas:</p>
+                      {categories.slice(0, 10).map((cat, idx) => (
                         <Link
                           key={idx}
                           href={`/indications?category=${encodeURIComponent(cat.name)}`}
@@ -429,12 +415,12 @@ export default function Home() {
                   </div>
 
                   {/* Path 2: By Company */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
-                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200">
+                    <h4 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                       <Activity className="w-5 h-5 text-purple-600" />
                       Browse by Company
                     </h4>
-                    <p className="text-sm text-gray-600 mb-4">Analyze companies and their competitive landscape</p>
+                    <p className="text-xs text-gray-600 mb-3">Analyze companies and their competitive landscape</p>
                     <Link
                       href="/companies"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-sm w-full justify-center"
@@ -443,9 +429,9 @@ export default function Home() {
                     </Link>
                     
                     {/* Quick Info */}
-                    <div className="mt-4 bg-white p-4 rounded-lg">
-                      <p className="text-sm text-gray-700 mb-3">
-                        <span className="font-semibold">50+</span> pharmaceutical companies tracked across clinical trials and news
+                    <div className="mt-3 bg-white p-3 rounded-lg">
+                      <p className="text-xs text-gray-700 mb-2">
+                        <span className="font-semibold">50+</span> pharmaceutical companies tracked
                       </p>
                       <div className="flex gap-2">
                         <Link
@@ -466,7 +452,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
