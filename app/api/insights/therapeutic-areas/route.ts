@@ -8,11 +8,6 @@ export async function GET(request: Request) {
     // Get therapeutic areas with indication counts
     const therapeuticAreas = await prisma.indication.groupBy({
       by: ['category'],
-      where: {
-        category: {
-          not: null,
-        },
-      },
       _count: {
         category: true,
       },
