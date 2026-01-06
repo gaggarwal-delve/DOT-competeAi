@@ -35,6 +35,14 @@ export default function IndicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [error, setError] = useState<string | null>(null);
+  
+  // Real-time metrics
+  const [liveMetrics, setLiveMetrics] = useState({
+    totalTrials: 0,
+    activeTrials: 0,
+    companiesCount: 0,
+    loadingMetrics: true
+  });
 
   useEffect(() => {
     const fetchIndication = async () => {
@@ -61,6 +69,46 @@ export default function IndicationDetailPage() {
       fetchIndication();
     }
   }, [slug]);
+
+  // Fetch live metrics when indication is loaded
+  useEffect(() => {
+    const fetchLiveMetrics = async () => {
+      if (!indication?.name) return;
+      
+      setLiveMetrics(prev => ({ ...prev, loadingMetrics: true }));
+      
+      try {
+        // Fetch trials data
+        const trialsResponse = await fetch(`/api/trials?condition=${encodeURIComponent(indication.name)}`);
+        const trialsData = await trialsResponse.json();
+        
+        const totalTrials = trialsData.success ? (trialsData.totalCount || trialsData.trials?.length || 0) : 0;
+        const activeTrials = trialsData.success 
+          ? trialsData.trials?.filter((t: any) => 
+              t.status?.toLowerCase().includes('recruiting') || 
+              t.status?.toLowerCase().includes('active')
+            ).length || 0
+          : 0;
+        
+        // Fetch companies data (unique sponsors)
+        const companiesCount = trialsData.success
+          ? new Set(trialsData.trials?.map((t: any) => t.sponsor).filter(Boolean)).size
+          : 0;
+        
+        setLiveMetrics({
+          totalTrials,
+          activeTrials,
+          companiesCount,
+          loadingMetrics: false
+        });
+      } catch (err) {
+        console.error('Error fetching live metrics:', err);
+        setLiveMetrics(prev => ({ ...prev, loadingMetrics: false }));
+      }
+    };
+    
+    fetchLiveMetrics();
+  }, [indication?.name]);
 
   if (loading) {
     return (
@@ -174,16 +222,32 @@ export default function IndicationDetailPage() {
                 <Activity className="w-5 h-5 opacity-80" />
                 <span className="text-sm opacity-90">Clinical Trials</span>
               </div>
-              <p className="text-3xl font-bold">{indication.totalTrials}</p>
-              <p className="text-sm opacity-80">{indication.activeTrials} active</p>
+              {liveMetrics.loadingMetrics ? (
+                <p className="text-3xl font-bold text-gray-400">
+                  <Loader2 className="w-8 h-8 animate-spin inline-block" />
+                </p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold">{liveMetrics.totalTrials}</p>
+                  <p className="text-sm opacity-80">{liveMetrics.activeTrials} active</p>
+                </>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Building2 className="w-5 h-5 opacity-80" />
                 <span className="text-sm opacity-90">Companies</span>
               </div>
-              <p className="text-3xl font-bold">{indication.companiesCount}</p>
-              <p className="text-sm opacity-80">Working on this</p>
+              {liveMetrics.loadingMetrics ? (
+                <p className="text-3xl font-bold text-gray-400">
+                  <Loader2 className="w-8 h-8 animate-spin inline-block" />
+                </p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold">{liveMetrics.companiesCount}</p>
+                  <p className="text-sm opacity-80">Unique sponsors</p>
+                </>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
