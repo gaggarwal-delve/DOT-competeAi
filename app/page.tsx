@@ -15,6 +15,9 @@ interface Indication {
   mostRecentYear?: number;
   yearRange?: string;
   trialCount?: number;
+  hasMarketInsight?: boolean;
+  hasDrugInsight?: boolean;
+  hasEpidemInsight?: boolean;
 }
 
 interface TherapeuticArea {
