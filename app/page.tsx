@@ -21,16 +21,17 @@ interface CategoryGroup {
 }
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Indication[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [popularIndications, setPopularIndications] = useState<Indication[]>([]);
+  const [selectedTA, setSelectedTA] = useState("");
+  const [selectedIndication, setSelectedIndication] = useState("");
   const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
+  const [filteredIndications, setFilteredIndications] = useState<Indication[]>([]);
+  const [popularIndications, setPopularIndications] = useState<Indication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingIndications, setLoadingIndications] = useState(false);
 
-  // Fetch popular indications and categories on mount
+  // Fetch categories on mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
         const response = await fetch('/api/indications?limit=12&orderBy=name');
         const data = await response.json();
@@ -40,40 +41,51 @@ export default function Home() {
           setCategories(data.categories || []);
         }
       } catch (error) {
-        console.error('Error fetching indications:', error);
+        console.error('Error fetching categories:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
+    fetchCategories();
   }, []);
 
-  // Search indications
+  // Fetch indications when TA is selected
   useEffect(() => {
-    if (!searchQuery || searchQuery.length < 2) {
-      setSearchResults([]);
+    if (!selectedTA) {
+      setFilteredIndications([]);
+      setSelectedIndication("");
       return;
     }
 
-    const searchDebounced = setTimeout(async () => {
-      setSearching(true);
+    const fetchIndications = async () => {
+      setLoadingIndications(true);
       try {
-        const response = await fetch(`/api/indications?search=${encodeURIComponent(searchQuery)}&limit=10`);
+        const response = await fetch(`/api/indications?category=${encodeURIComponent(selectedTA)}&limit=1000&orderBy=name`);
         const data = await response.json();
         
         if (data.success) {
-          setSearchResults(data.indications || []);
+          setFilteredIndications(data.indications || []);
         }
       } catch (error) {
-        console.error('Error searching:', error);
+        console.error('Error fetching indications:', error);
       } finally {
-        setSearching(false);
+        setLoadingIndications(false);
       }
-    }, 300);
+    };
+    
+    fetchIndications();
+  }, [selectedTA]);
 
-    return () => clearTimeout(searchDebounced);
-  }, [searchQuery]);
+  // Navigate when indication is selected
+  useEffect(() => {
+    if (selectedIndication && selectedTA) {
+      const indication = filteredIndications.find(i => i.slug === selectedIndication);
+      if (indication) {
+        window.location.href = `/indications/${indication.slug}`;
+      }
+    }
+  }, [selectedIndication, selectedTA, filteredIndications]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -84,7 +96,7 @@ export default function Home() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
                 Compete<span className="text-blue-600">AI</span> <span className="text-xl font-normal text-gray-500">V2</span>
-              </h1>
+            </h1>
               <p className="text-sm text-gray-600 mt-1">Pharmaceutical Competitive Intelligence</p>
             </div>
             <div className="flex gap-3">
@@ -104,56 +116,88 @@ export default function Home() {
 
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
-        <div className="max-w-4xl mx-auto text-center mb-12">
+        <div className="max-w-5xl mx-auto text-center mb-12">
           <h2 className="text-5xl font-bold text-gray-900 mb-4">
             Select Your <span className="text-blue-600">Indication</span>
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Deep dive into 6,000+ therapeutic areas with clinical trials, companies, and market intelligence
+          <p className="text-xl text-gray-600 mb-10">
+            Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
           </p>
           
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search indications (e.g., Breast Cancer, Diabetes, Alzheimer's)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm"
-              />
-              {searching && (
-                <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5 animate-spin" />
-              )}
-            </div>
-            
-            {/* Search Results Dropdown */}
-            {searchResults.length > 0 && (
-              <div className="absolute w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto">
-                {searchResults.map((indication) => (
-                  <Link
-                    key={indication.id}
-                    href={`/indications/${indication.slug}`}
-                    className="block px-4 py-3 hover:bg-blue-50 transition border-b border-gray-100 last:border-0"
+          {/* 2-Step Selection */}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Step 1: Select Therapeutic Area */}
+              <div className="relative">
+                <label className="block text-left text-sm font-semibold text-gray-700 mb-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs mr-2">1</span>
+                  Select Therapeutic Area
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedTA}
+                    onChange={(e) => {
+                      setSelectedTA(e.target.value);
+                      setSelectedIndication("");
+                    }}
+                    className="w-full pl-4 pr-10 py-4 text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">{indication.name}</p>
-                        <p className="text-sm text-gray-500">{indication.category}</p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    </div>
-                  </Link>
-                ))}
+                    <option value="">-- Choose a Therapeutic Area --</option>
+                    {categories.map((cat) => (
+                      <option key={cat.name} value={cat.name}>
+                        {cat.name} ({cat.count} indications)
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 w-5 h-5 pointer-events-none" />
+                </div>
               </div>
-            )}
-            
-            {searchQuery.length >= 2 && searchResults.length === 0 && !searching && (
-              <div className="absolute w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 text-center text-gray-500">
-                No indications found for "{searchQuery}"
+
+              {/* Step 2: Select Indication */}
+              <div className="relative">
+                <label className="block text-left text-sm font-semibold text-gray-700 mb-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs mr-2">2</span>
+                  Select Indication
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedIndication}
+                    onChange={(e) => setSelectedIndication(e.target.value)}
+                    disabled={!selectedTA || loadingIndications}
+                    className="w-full pl-4 pr-10 py-4 text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition shadow-sm appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  >
+                    {!selectedTA ? (
+                      <option value="">Select TA first →</option>
+                    ) : loadingIndications ? (
+                      <option value="">Loading indications...</option>
+                    ) : filteredIndications.length === 0 ? (
+                      <option value="">No indications found</option>
+                    ) : (
+                      <>
+                        <option value="">-- Choose an Indication --</option>
+                        {filteredIndications.map((indication) => (
+                          <option key={indication.id} value={indication.slug}>
+                            {indication.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                  <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 w-5 h-5 pointer-events-none" />
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Search Link */}
+            <div className="mt-6">
+              <Link
+                href="/indications"
+                className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
+              >
+                <Search className="w-4 h-4" />
+                Or browse & search all 5,600+ indications
+              </Link>
+            </div>
           </div>
         </div>
 
