@@ -1,12 +1,14 @@
 // CompeteAI Prisma Schema
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url = env("postgres_DATABASE_URL")
   directUrl = env("postgres_DATABASE_URL_UNPOOLED")
+  extensions = [vector]
 }
 
 model Company {
@@ -160,5 +162,29 @@ model IndicationCompany {
   @@unique([indicationId, companyId])
   @@index([indicationId])
   @@index([companyId])
+}
+
+// RAG: Vector Embeddings for Natural Language Search
+model Embedding {
+  id             Int                        @id @default(autoincrement())
+  
+  // Content information
+  content        String                     @db.Text
+  contentType    String                     // "trial", "company", "news", "indication"
+  contentId      String                     // Reference to source (e.g., NCT number, company slug)
+  
+  // Vector embedding (768 dimensions for Hugging Face all-mpnet-base-v2)
+  embedding      Unsupported("vector(768)")?
+  
+  // Metadata for filtering and display
+  metadata       Json?                      // Flexible metadata (phase, status, category, etc.)
+  
+  // Timestamps
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  
+  @@index([contentType])
+  @@index([contentId])
+  @@unique([contentType, contentId])
 }
 

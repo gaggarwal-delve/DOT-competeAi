@@ -79,29 +79,29 @@ function InsightsDashboard({
       
       {/* Tab Content */}
       {activeTab === 'areas' && (
-        <div className="grid md:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-2">
+        <div className="grid md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2">
           {therapeuticAreas.slice(0, 30).map((ta, idx) => (
             <Link
               key={ta.name}
               href={`/indications?category=${encodeURIComponent(ta.name)}`}
-              className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-purple-100 hover:border-purple-300 group"
+              className="bg-gradient-to-br from-purple-50 to-blue-50 p-5 rounded-lg hover:shadow-md transition border border-purple-100 hover:border-purple-300 group"
             >
               <div className="flex items-start justify-between mb-3">
-                <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">
+                <span className="inline-flex items-center justify-center w-9 h-9 bg-purple-600 text-white rounded-full text-sm font-bold">
                   #{idx + 1}
                 </span>
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition" />
               </div>
-              <p className="font-semibold text-gray-900 group-hover:text-purple-700 transition mb-2 line-clamp-2">
+              <p className="font-bold text-gray-900 group-hover:text-purple-700 transition mb-3 text-base">
                 {ta.name}
               </p>
-              <div className="flex items-center justify-between text-xs text-gray-600">
-                <span>{ta.indicationCount} indications</span>
-                <span>{ta.totalReports} reports</span>
+              <div className="space-y-1 text-sm text-gray-700">
+                <p>{ta.indicationCount} indications</p>
+                <p>{ta.totalReports} reports</p>
+                {ta.mostRecentYear && (
+                  <p className="text-gray-600">Latest: {ta.mostRecentYear}</p>
+                )}
               </div>
-              {ta.mostRecentYear && (
-                <p className="text-xs text-gray-500 mt-1">Latest: {ta.mostRecentYear}</p>
-              )}
             </Link>
           ))}
         </div>
@@ -240,24 +240,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header */}
+      {/* Header (Matching Visily Design) */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Compete<span className="text-blue-600">AI</span> <span className="text-xl font-normal text-gray-500">V2</span>
-            </h1>
-              <p className="text-sm text-gray-600 mt-1">Pharmaceutical Competitive Intelligence</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                CompeteAI V2 Pharmaceutical Competitive Intelligence
+              </h1>
             </div>
-            <div className="flex gap-3">
-              <Link href="/companies" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+            <div className="flex gap-4">
+              <Link href="/companies" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                 Companies
               </Link>
-              <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+              <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                 All Trials
               </Link>
-              <Link href="/news" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+              <Link href="/news" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                 News
               </Link>
             </div>
@@ -270,10 +269,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto mb-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-4xl font-bold mb-3">
                 Select Your <span className="text-blue-600">Indication</span>
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-base text-gray-600">
                 Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
               </p>
             </div>
@@ -333,25 +332,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Stats - Compact Horizontal */}
-            <div className="flex items-center justify-center gap-8 py-3 border-t border-gray-100">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">6,067</p>
-                <p className="text-xs text-gray-600">Indications</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">10,000+</p>
-                <p className="text-xs text-gray-600">Clinical Trials</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">50+</p>
-                <p className="text-xs text-gray-600">Companies</p>
-              </div>
+            {/* Stats - Inline with Colors (Matching Visily Design) */}
+            <div className="flex items-center justify-center gap-6 py-4 border-t border-gray-100">
+              <span className="text-lg font-bold text-blue-600">6,067 Indications</span>
+              <span className="text-lg font-bold text-green-600">10,000+ Clinical Trials</span>
+              <span className="text-lg font-bold text-gray-900">50+ Companies</span>
               <Link
                 href="/indications"
-                className="text-xs text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
+                className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1.5 ml-2"
               >
-                <Search className="w-3 h-3" />
+                <Search className="w-4 h-4" />
                 Browse All
               </Link>
             </div>
@@ -373,7 +363,7 @@ export default function Home() {
                 recentIndications={recentIndications}
               />
 
-              {/* Right Panel: Quick Browse */}
+              {/* Right Panel: Quick Browse (Matching Visily Design) */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                   <Search className="w-6 h-6 text-blue-600" />
@@ -381,71 +371,35 @@ export default function Home() {
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">Choose your exploration path</p>
                 
-                <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2">
-                  {/* Path 1: By Therapeutic Area */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
-                    <h4 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <div className="space-y-6 max-h-[450px] overflow-y-auto pr-2">
+                  {/* Browse by Therapeutic Area */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border-2 border-blue-200">
+                    <h4 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                       <Database className="w-5 h-5 text-blue-600" />
                       Browse by Therapeutic Area
                     </h4>
-                    <p className="text-xs text-gray-600 mb-3">Explore {categories.length}+ therapeutic areas and their indications</p>
+                    <p className="text-sm text-gray-600 mb-4">Explore {categories.length}+ therapeutic areas and their indications</p>
                     <Link
                       href="/indications"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm w-full justify-center"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm w-full justify-center text-sm"
                     >
                       View All Indications <ChevronRight className="w-4 h-4" />
                     </Link>
                     
-                    {/* Top Categories */}
-                    <div className="mt-3 space-y-1.5">
-                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Top Areas:</p>
-                      {categories.slice(0, 10).map((cat, idx) => (
-                        <Link
-                          key={idx}
-                          href={`/indications?category=${encodeURIComponent(cat.name)}`}
-                          className="block p-2 bg-white rounded hover:bg-blue-50 transition text-sm group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-900 group-hover:text-blue-600">{cat.name}</span>
-                            <span className="text-xs text-gray-500">{cat.count}</span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Path 2: By Company */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200">
-                    <h4 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-purple-600" />
-                      Browse by Company
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-3">Analyze companies and their competitive landscape</p>
-                    <Link
-                      href="/companies"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-sm w-full justify-center"
-                    >
-                      View All Companies <ChevronRight className="w-4 h-4" />
-                    </Link>
-                    
-                    {/* Quick Info */}
-                    <div className="mt-3 bg-white p-3 rounded-lg">
-                      <p className="text-xs text-gray-700 mb-2">
-                        <span className="font-semibold">50+</span> pharmaceutical companies tracked
-                      </p>
-                      <div className="flex gap-2">
-                        <Link
-                          href="/dashboard"
-                          className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200 transition text-center"
-                        >
-                          All Trials
-                        </Link>
-                        <Link
-                          href="/news"
-                          className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200 transition text-center"
-                        >
-                          Latest News
-                        </Link>
+                    {/* TOP AREAS List */}
+                    <div className="mt-5">
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3 tracking-wider">TOP AREAS:</p>
+                      <div className="space-y-2">
+                        {categories.slice(0, 6).map((cat, idx) => (
+                          <Link
+                            key={idx}
+                            href={`/indications?category=${encodeURIComponent(cat.name)}`}
+                            className="flex items-center justify-between p-2.5 bg-white rounded-lg hover:bg-blue-50 transition group"
+                          >
+                            <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600">{cat.name}</span>
+                            <span className="text-sm text-gray-600 font-medium">{cat.count}</span>
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   </div>
