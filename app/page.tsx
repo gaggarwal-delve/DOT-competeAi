@@ -12,7 +12,6 @@ interface Indication {
   totalTrials: number;
   activeTrials: number;
   companiesCount: number;
-  therapeuticArea?: string;
   mostRecentYear?: number;
   yearRange?: string;
   trialCount?: number;
@@ -326,7 +325,7 @@ export default function Home() {
                       <p className="font-semibold text-gray-900 group-hover:text-green-700 transition mb-2 line-clamp-2">
                         {indication.name}
                       </p>
-                      <p className="text-xs text-gray-500 mb-2">{indication.therapeuticArea}</p>
+                      <p className="text-xs text-gray-500 mb-2">{indication.category}</p>
                       <div className="flex items-center gap-2 text-xs">
                         {indication.hasMarketInsight && (
                           <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Market</span>

@@ -7,18 +7,18 @@ export async function GET(request: Request) {
   try {
     // Get therapeutic areas with indication counts
     const therapeuticAreas = await prisma.indication.groupBy({
-      by: ['therapeuticArea'],
+      by: ['category'],
       where: {
-        therapeuticArea: {
+        category: {
           not: null,
         },
       },
       _count: {
-        therapeuticArea: true,
+        category: true,
       },
       orderBy: {
         _count: {
-          therapeuticArea: 'desc',
+          category: 'desc',
         },
       },
     });
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       therapeuticAreas.map(async (ta) => {
         const stats = await prisma.indication.aggregate({
           where: {
-            therapeuticArea: ta.therapeuticArea,
+            category: ta.category,
           },
           _sum: {
             totalReports: true,
@@ -39,8 +39,8 @@ export async function GET(request: Request) {
         });
 
         return {
-          name: ta.therapeuticArea,
-          indicationCount: ta._count.therapeuticArea,
+          name: ta.category,
+          indicationCount: ta._count.category,
           totalReports: stats._sum.totalReports || 0,
           mostRecentYear: stats._max.mostRecentYear,
         };
