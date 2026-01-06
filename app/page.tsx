@@ -33,6 +33,122 @@ interface CategoryGroup {
   indications: Indication[];
 }
 
+// Insights Dashboard Component with Tabs
+function InsightsDashboard({ 
+  therapeuticAreas, 
+  recentIndications 
+}: { 
+  therapeuticAreas: TherapeuticArea[];
+  recentIndications: Indication[];
+}) {
+  const [activeTab, setActiveTab] = useState<'areas' | 'indications'>('areas');
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <TrendingUp className="w-6 h-6 text-blue-600" />
+        Intelligence Dashboard
+      </h3>
+      <p className="text-sm text-gray-600 mb-6">Top insights across therapeutic areas and indications</p>
+      
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('areas')}
+          className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${
+            activeTab === 'areas'
+              ? 'border-purple-600 text-purple-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 inline-block mr-1.5" />
+          Top Therapeutic Areas
+        </button>
+        <button
+          onClick={() => setActiveTab('indications')}
+          className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${
+            activeTab === 'indications'
+              ? 'border-green-600 text-green-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Clock className="w-4 h-4 inline-block mr-1.5" />
+          Recently Updated
+        </button>
+      </div>
+      
+      {/* Tab Content */}
+      {activeTab === 'areas' && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+          {therapeuticAreas.slice(0, 30).map((ta, idx) => (
+            <Link
+              key={ta.name}
+              href={`/indications?category=${encodeURIComponent(ta.name)}`}
+              className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-purple-100 hover:border-purple-300 group"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">
+                  #{idx + 1}
+                </span>
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition" />
+              </div>
+              <p className="font-semibold text-gray-900 group-hover:text-purple-700 transition mb-2 line-clamp-2">
+                {ta.name}
+              </p>
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>{ta.indicationCount} indications</span>
+                <span>{ta.totalReports} reports</span>
+              </div>
+              {ta.mostRecentYear && (
+                <p className="text-xs text-gray-500 mt-1">Latest: {ta.mostRecentYear}</p>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+      
+      {activeTab === 'indications' && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+          {recentIndications.slice(0, 50).map((indication, idx) => (
+            <Link
+              key={indication.id}
+              href={`/indications/${indication.slug}`}
+              className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-green-100 hover:border-green-300 group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <span className="inline-flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-bold">
+                  #{idx + 1}
+                </span>
+                <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                  {indication.mostRecentYear}
+                </span>
+              </div>
+              <p className="font-semibold text-gray-900 group-hover:text-green-700 transition mb-2 line-clamp-2">
+                {indication.name}
+              </p>
+              <p className="text-xs text-gray-500 mb-2">{indication.category}</p>
+              <div className="flex items-center gap-2 text-xs flex-wrap">
+                {indication.hasMarketInsight && (
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Market</span>
+                )}
+                {indication.hasDrugInsight && (
+                  <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Drug</span>
+                )}
+                {indication.hasEpidemInsight && (
+                  <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Epidem</span>
+                )}
+              </div>
+              {indication.yearRange && (
+                <p className="text-xs text-gray-500 mt-2">Range: {indication.yearRange}</p>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [selectedTA, setSelectedTA] = useState("");
   const [selectedIndication, setSelectedIndication] = useState("");
@@ -255,7 +371,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Insights Sections */}
+        {/* Insights Dashboard with Tabs */}
         {loadingInsights ? (
           <div className="text-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
@@ -263,144 +379,91 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Most Active Therapeutic Areas */}
             <div className="max-w-6xl mx-auto mb-12">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <BarChart3 className="w-6 h-6 text-purple-600" />
-                  Most Active Therapeutic Areas
-                </h3>
-                <p className="text-sm text-gray-600 mb-6">Ranked by number of indications and research reports</p>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                  {therapeuticAreas.slice(0, 30).map((ta, idx) => (
-                    <Link
-                      key={ta.name}
-                      href={`/indications?category=${encodeURIComponent(ta.name)}`}
-                      className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-purple-100 hover:border-purple-300 group"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">
-                          #{idx + 1}
-                        </span>
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition" />
-                      </div>
-                      <p className="font-semibold text-gray-900 group-hover:text-purple-700 transition mb-2 line-clamp-2">
-                        {ta.name}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-gray-600">
-                        <span>{ta.indicationCount} indications</span>
-                        <span>{ta.totalReports} reports</span>
-                      </div>
-                      {ta.mostRecentYear && (
-                        <p className="text-xs text-gray-500 mt-1">Latest: {ta.mostRecentYear}</p>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <InsightsDashboard 
+                therapeuticAreas={therapeuticAreas}
+                recentIndications={recentIndications}
+              />
             </div>
 
-            {/* Recently Updated Indications */}
-            <div className="max-w-6xl mx-auto mb-12">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <Clock className="w-6 h-6 text-green-600" />
-                  Recently Updated Indications
-                </h3>
-                <p className="text-sm text-gray-600 mb-6">Latest published research and reports (2020-2035)</p>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                  {recentIndications.slice(0, 50).map((indication, idx) => (
-                    <Link
-                      key={indication.id}
-                      href={`/indications/${indication.slug}`}
-                      className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg hover:shadow-md transition border border-green-100 hover:border-green-300 group"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-bold">
-                          #{idx + 1}
-                        </span>
-                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                          {indication.mostRecentYear}
-                        </span>
-                      </div>
-                      <p className="font-semibold text-gray-900 group-hover:text-green-700 transition mb-2 line-clamp-2">
-                        {indication.name}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-2">{indication.category}</p>
-                      <div className="flex items-center gap-2 text-xs">
-                        {indication.hasMarketInsight && (
-                          <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Market</span>
-                        )}
-                        {indication.hasDrugInsight && (
-                          <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Drug</span>
-                        )}
-                        {indication.hasEpidemInsight && (
-                          <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Epidem</span>
-                        )}
-                      </div>
-                      {indication.yearRange && (
-                        <p className="text-xs text-gray-500 mt-2">Range: {indication.yearRange}</p>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Popular Indications */}
-            <div className="max-w-6xl mx-auto mb-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-                Browse Indications
-              </h3>
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {popularIndications.slice(0, 12).map((indication) => (
-                  <Link
-                    key={indication.id}
-                    href={`/indications/${indication.slug}`}
-                    className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100 hover:border-blue-300 group"
-                  >
-                    <p className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
-                      {indication.name}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-3">{indication.category}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span>{indication.totalTrials || 0} trials</span>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              
-              <div className="text-center mt-8">
-                <Link
-                  href="/indications"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm"
-                >
-                  Browse All 6,000+ Indications <ChevronRight className="w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Categories */}
+            {/* Quick Browse Panel */}
             <div className="max-w-6xl mx-auto">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">By Therapeutic Area</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categories.slice(0, 12).map((cat, idx) => (
-                  <Link
-                    key={idx}
-                    href={`/indications?category=${encodeURIComponent(cat.name)}`}
-                    className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100 hover:border-blue-300 group flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition">{cat.name}</p>
-                      <p className="text-sm text-gray-500">{cat.count} indications</p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Search className="w-6 h-6 text-blue-600" />
+                  Quick Browse
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">Choose your exploration path</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Path 1: By Therapeutic Area */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-200">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <Database className="w-5 h-5 text-blue-600" />
+                      Browse by Therapeutic Area
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">Explore {categories.length}+ therapeutic areas and their indications</p>
+                    <Link
+                      href="/indications"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm w-full justify-center"
+                    >
+                      View All Indications <ChevronRight className="w-4 h-4" />
+                    </Link>
+                    
+                    {/* Top 6 Categories */}
+                    <div className="mt-4 space-y-2">
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Top Areas:</p>
+                      {categories.slice(0, 6).map((cat, idx) => (
+                        <Link
+                          key={idx}
+                          href={`/indications?category=${encodeURIComponent(cat.name)}`}
+                          className="block p-2 bg-white rounded hover:bg-blue-50 transition text-sm group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-900 group-hover:text-blue-600">{cat.name}</span>
+                            <span className="text-xs text-gray-500">{cat.count}</span>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition" />
-                  </Link>
-                ))}
+                  </div>
+
+                  {/* Path 2: By Company */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-purple-600" />
+                      Browse by Company
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">Analyze companies and their competitive landscape</p>
+                    <Link
+                      href="/companies"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-sm w-full justify-center"
+                    >
+                      View All Companies <ChevronRight className="w-4 h-4" />
+                    </Link>
+                    
+                    {/* Quick Info */}
+                    <div className="mt-4 bg-white p-4 rounded-lg">
+                      <p className="text-sm text-gray-700 mb-3">
+                        <span className="font-semibold">50+</span> pharmaceutical companies tracked across clinical trials and news
+                      </p>
+                      <div className="flex gap-2">
+                        <Link
+                          href="/dashboard"
+                          className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200 transition text-center"
+                        >
+                          All Trials
+                        </Link>
+                        <Link
+                          href="/news"
+                          className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200 transition text-center"
+                        >
+                          Latest News
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </>
