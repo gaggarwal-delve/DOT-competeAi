@@ -219,45 +219,23 @@ export default function Home() {
   }, [selectedIndication, selectedTA, filteredIndications]);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Top Header - Matching Visily */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-gray-900">
-              CompeteAI V2 Pharmaceutical Competitive Intelligence
-            </h1>
-            <div className="flex gap-6">
-              <Link href="/companies" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
-                Companies
-              </Link>
-              <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
-                All Trials
-              </Link>
-              <Link href="/news" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
-                News
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen">
       {/* Main Content */}
-      <div className="p-6">
+      <div className="p-8">
         {/* Select Your Indication Section - Light Blue Background */}
-        <div className="mb-6 bg-[#F5F8FF] rounded-xl p-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">
+        <div className="mb-8 bg-[#F5F8FF] rounded-xl p-8" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <h2 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">
             Select Your <span className="text-[#4169E1]">Indication</span>
           </h2>
-          <p className="text-base text-gray-600 mb-6 leading-relaxed">
+          <p className="text-base text-gray-600 mb-8 leading-relaxed">
             Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
           </p>
           
           {/* 2-Step Selection */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-[#4169E1] text-white rounded-full text-xs mr-2">1</span>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-[#4169E1] text-white rounded-full text-xs mr-2 font-bold">1</span>
                 Select Therapeutic Area
               </label>
               <select
@@ -266,8 +244,8 @@ export default function Home() {
                   setSelectedTA(e.target.value);
                   setSelectedIndication("");
                 }}
-                className="w-full px-4 py-2.5 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 transition-all"
-                style={{ borderRadius: '12px' }}
+                className="w-full px-4 py-3 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 transition-all text-sm"
+                style={{ borderRadius: '10px' }}
               >
                 <option value="">-- Choose a Therapeutic Area --</option>
                 {categories.map((cat) => (
@@ -279,16 +257,16 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-[#4169E1] text-white rounded-full text-xs mr-2">2</span>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-[#4169E1] text-white rounded-full text-xs mr-2 font-bold">2</span>
                 Select Indication
               </label>
               <select
                 value={selectedIndication}
                 onChange={(e) => setSelectedIndication(e.target.value)}
                 disabled={!selectedTA || loadingIndications}
-                className="w-full px-4 py-2.5 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
-                style={{ borderRadius: '12px' }}
+                className="w-full px-4 py-3 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all text-sm"
+                style={{ borderRadius: '10px' }}
               >
                 {!selectedTA ? (
                   <option value="">Select TA first →</option>
@@ -311,18 +289,18 @@ export default function Home() {
           </div>
 
           {/* Metrics Row - Vertical Stacked Boxes */}
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col bg-white px-5 py-3 rounded-lg border border-gray-200 shadow-sm">
-              <span className="text-2xl font-bold text-[#4169E1] leading-tight">6,067</span>
-              <span className="text-sm text-gray-600 mt-1">Indications</span>
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col">
+              <span className="text-3xl font-bold text-[#4169E1] leading-tight mb-1">6,067</span>
+              <span className="text-sm text-gray-600">Indications</span>
             </div>
-            <div className="flex flex-col bg-white px-5 py-3 rounded-lg border border-gray-200 shadow-sm">
-              <span className="text-2xl font-bold text-[#22C55E] leading-tight">10,000+</span>
-              <span className="text-sm text-gray-600 mt-1">Clinical Trials</span>
+            <div className="flex flex-col">
+              <span className="text-3xl font-bold text-[#22C55E] leading-tight mb-1">10,000+</span>
+              <span className="text-sm text-gray-600">Clinical Trials</span>
             </div>
-            <div className="flex flex-col bg-white px-5 py-3 rounded-lg border border-gray-200 shadow-sm">
-              <span className="text-2xl font-bold text-gray-900 leading-tight">50+</span>
-              <span className="text-sm text-gray-600 mt-1">Companies</span>
+            <div className="flex flex-col">
+              <span className="text-3xl font-bold text-gray-900 leading-tight mb-1">50+</span>
+              <span className="text-sm text-gray-600">Companies</span>
             </div>
             <Link
               href="/indications"
@@ -341,7 +319,7 @@ export default function Home() {
             <p className="text-gray-600 mt-4">Loading insights...</p>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-8">
             {/* Left: Intelligence Dashboard */}
             <IntelligenceDashboard 
               therapeuticAreas={therapeuticAreas}

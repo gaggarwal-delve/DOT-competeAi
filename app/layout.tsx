@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Activity, Building2, Newspaper, Bell, LayoutDashboard } from "lucide-react";
+import { Activity, Building2, Newspaper, Bell } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,16 +15,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="flex min-h-screen bg-white">
+        {/* Full-Width Top Header - Above Everything */}
+        <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-semibold text-gray-900">CompeteAI</h1>
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">V2</span>
+              <span className="text-sm text-gray-600">Pharmaceutical Competitive Intelligence</span>
+            </div>
+            <nav className="flex gap-6">
+              <Link href="/companies" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
+                Companies
+              </Link>
+              <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
+                All Trials
+              </Link>
+              <Link href="/news" className="text-sm font-medium text-gray-700 hover:text-[#4169E1] transition-colors">
+                News
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        {/* Main Layout: Sidebar + Content */}
+        <div className="flex pt-[73px]">
           {/* Sidebar Navigation - Light Theme */}
-          <aside className="w-[220px] bg-gray-50 border-r border-gray-200 p-6 flex flex-col">
-            <Link href="/" className="mb-10">
-              <h1 className="text-2xl font-bold text-gray-900">CompeteAI</h1>
-              <p className="text-sm text-gray-500 mt-1">Pharma Intelligence</p>
+          <aside className="w-[220px] bg-gray-50 border-r border-gray-200 p-6 flex flex-col fixed left-0 top-[73px] bottom-0">
+            <Link href="/" className="mb-8">
+              <p className="text-sm text-gray-500">Pharma Intelligence</p>
             </Link>
             
             <nav className="space-y-1 flex-grow">
-              <NavLink href="/dashboard" icon={<Activity className="w-5 h-5" />} text="Clinical Trials" active />
+              <NavLink href="/" icon={<Activity className="w-5 h-5" />} text="Clinical Trials" active />
               <NavLink href="/companies" icon={<Building2 className="w-5 h-5" />} text="Companies" />
               <NavLink href="/news" icon={<Newspaper className="w-5 h-5" />} text="News Feed" />
               <NavLink href="/alerts" icon={<Bell className="w-5 h-5" />} text="Alerts" />
@@ -37,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 ml-[220px] bg-[#FAFBFC] min-h-screen">
             {children}
           </main>
         </div>
@@ -57,8 +79,7 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
       }`}
     >
       {icon}
-      <span className="font-medium">{text}</span>
+      <span className="font-medium text-sm">{text}</span>
     </Link>
   );
 }
-
