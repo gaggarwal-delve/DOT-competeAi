@@ -72,11 +72,12 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
   return (
     <Link
       href={href}
-      className={`flex items-center space-x-3 p-3 rounded-lg transition-colors duration-200 ${
+      className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
         active
-          ? 'bg-blue-600 text-white'
+          ? 'bg-blue-600 text-white shadow-md'
           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
       }`}
+      style={active ? { boxShadow: '0 2px 6px rgba(37, 99, 235, 0.4)' } : undefined}
     >
       {icon}
       <span className="font-medium text-sm">{text}</span>

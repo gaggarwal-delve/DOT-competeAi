@@ -27,7 +27,7 @@ interface TherapeuticArea {
   mostRecentYear: number | null;
 }
 
-// Intelligence Dashboard Component - Pixel Perfect Visily Design
+// Intelligence Dashboard Component - Clean Visily Design
 function IntelligenceDashboard({ 
   therapeuticAreas, 
   recentIndications 
@@ -37,28 +37,27 @@ function IntelligenceDashboard({
 }) {
   const [activeTab, setActiveTab] = useState<'areas' | 'indications'>('areas');
 
-  // Badge colors matching Visily: #1 blue, #2 green, others gray
   const getBadgeColor = (idx: number) => {
-    if (idx === 0) return 'bg-blue-600 text-white'; // #1 blue
-    if (idx === 1) return 'bg-green-500 text-white'; // #2 green
-    return 'bg-gray-200 text-gray-700'; // others gray
+    if (idx === 0) return 'bg-blue-600 text-white';
+    if (idx === 1) return 'bg-green-500 text-white';
+    return 'bg-gray-200 text-gray-700';
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
       <div className="flex items-center gap-2 mb-2">
         <BarChart3 className="w-5 h-5 text-gray-600" />
-        <h3 className="text-xl font-bold text-gray-900 leading-tight">Intelligence Dashboard</h3>
+        <h3 className="text-xl font-bold text-gray-900">Intelligence Dashboard</h3>
       </div>
-      <p className="text-sm text-gray-600 mb-6 leading-relaxed">Top insights across therapeutic areas and indications</p>
+      <p className="text-sm text-gray-600 mb-6">Top insights across therapeutic areas and indications</p>
       
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-gray-200">
         <button
           onClick={() => setActiveTab('areas')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'areas'
-              ? 'border-[#4169E1] text-[#4169E1]'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
@@ -66,12 +65,13 @@ function IntelligenceDashboard({
         </button>
         <button
           onClick={() => setActiveTab('indications')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
             activeTab === 'indications'
-              ? 'border-[#4169E1] text-[#4169E1]'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
+          <span className="text-gray-400">⏱</span>
           Recently Updated
         </button>
       </div>
@@ -83,22 +83,20 @@ function IntelligenceDashboard({
             <Link
               key={ta.name}
               href={`/indications?category=${encodeURIComponent(ta.name)}`}
-              className="bg-white border border-[#E5E7EB] rounded-xl p-5 hover:shadow-lg transition-all duration-200 group"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 group"
+              style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getBadgeColor(idx)}`}>
                   #{idx + 1}
                 </span>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#4169E1] transition-colors" />
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
               </div>
-              <p className="font-bold text-gray-900 mb-3 text-base leading-tight">{ta.name}</p>
-              <div className="space-y-1.5 text-sm text-gray-600 leading-relaxed">
+              <p className="font-bold text-gray-900 mb-3 text-base">{ta.name}</p>
+              <div className="space-y-1 text-sm text-gray-600">
                 <p>{ta.indicationCount} indications</p>
                 <p>{ta.totalReports} reports</p>
-                {ta.mostRecentYear && (
-                  <p>Latest: {ta.mostRecentYear}</p>
-                )}
+                {ta.mostRecentYear && <p>Latest: {ta.mostRecentYear}</p>}
               </div>
             </Link>
           ))}
@@ -111,18 +109,18 @@ function IntelligenceDashboard({
             <Link
               key={indication.id}
               href={`/indications/${indication.slug}`}
-              className="bg-white border border-[#E5E7EB] rounded-xl p-5 hover:shadow-lg transition-all duration-200 group"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 group"
+              style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="inline-flex items-center justify-center w-10 h-10 bg-gray-200 text-gray-700 rounded-full text-sm font-bold">
                   #{idx + 1}
                 </span>
-                <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
+                <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded">
                   {indication.mostRecentYear}
                 </span>
               </div>
-              <p className="font-bold text-gray-900 mb-2 text-base leading-tight line-clamp-2">{indication.name}</p>
+              <p className="font-bold text-gray-900 mb-2 text-base line-clamp-2">{indication.name}</p>
               <p className="text-xs text-gray-500">{indication.category}</p>
             </Link>
           ))}
@@ -140,12 +138,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadingIndications, setLoadingIndications] = useState(false);
   
-  // Insights state
   const [recentIndications, setRecentIndications] = useState<Indication[]>([]);
   const [therapeuticAreas, setTherapeuticAreas] = useState<TherapeuticArea[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(true);
 
-  // Fetch categories and insights on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -181,7 +177,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Fetch indications when TA is selected
   useEffect(() => {
     if (!selectedTA) {
       setFilteredIndications([]);
@@ -208,7 +203,6 @@ export default function Home() {
     fetchIndications();
   }, [selectedTA]);
 
-  // Navigate when indication is selected
   useEffect(() => {
     if (selectedIndication && selectedTA) {
       const indication = filteredIndications.find(i => i.slug === selectedIndication);
@@ -220,14 +214,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Main Content */}
-      <div className="p-8">
-        {/* Select Your Indication Section - Light Blue Background */}
-        <div className="mb-8 bg-[#F5F8FF] rounded-xl p-8" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <h2 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">
-            Select Your <span className="text-[#4169E1]">Indication</span>
+      <div className="p-6">
+        {/* Select Your Indication Section - Clean Blue Background */}
+        <div className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-8">
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">
+            Select Your <span className="text-blue-600">Indication</span>
           </h2>
-          <p className="text-base text-gray-600 mb-8 leading-relaxed">
+          <p className="text-base text-gray-600 mb-8">
             Deep dive into 5,600+ therapeutic areas with clinical trials, companies, and market intelligence
           </p>
           
@@ -235,7 +228,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                <span className="inline-flex items-center justify-center w-7 h-7 bg-[#4169E1] text-white rounded-full text-xs mr-2 font-bold">1</span>
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-600 text-white rounded-full text-xs mr-2 font-bold">1</span>
                 Select Therapeutic Area
               </label>
               <select
@@ -244,8 +237,7 @@ export default function Home() {
                   setSelectedTA(e.target.value);
                   setSelectedIndication("");
                 }}
-                className="w-full px-4 py-3 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 transition-all text-sm"
-                style={{ borderRadius: '10px' }}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-all text-sm"
               >
                 <option value="">-- Choose a Therapeutic Area --</option>
                 {categories.map((cat) => (
@@ -258,15 +250,14 @@ export default function Home() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                <span className="inline-flex items-center justify-center w-7 h-7 bg-[#4169E1] text-white rounded-full text-xs mr-2 font-bold">2</span>
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-600 text-white rounded-full text-xs mr-2 font-bold">2</span>
                 Select Indication
               </label>
               <select
                 value={selectedIndication}
                 onChange={(e) => setSelectedIndication(e.target.value)}
                 disabled={!selectedTA || loadingIndications}
-                className="w-full px-4 py-3 border-2 border-[#D1D5DB] rounded-xl focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1] bg-white text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all text-sm"
-                style={{ borderRadius: '10px' }}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all text-sm"
               >
                 {!selectedTA ? (
                   <option value="">Select TA first →</option>
@@ -288,23 +279,23 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Metrics Row - Vertical Stacked Boxes */}
-          <div className="flex items-center gap-6">
+          {/* Metrics Row */}
+          <div className="flex items-center gap-8">
             <div className="flex flex-col">
-              <span className="text-3xl font-bold text-[#4169E1] leading-tight mb-1">6,067</span>
+              <span className="text-3xl font-bold text-blue-600 mb-1">6,067</span>
               <span className="text-sm text-gray-600">Indications</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-3xl font-bold text-[#22C55E] leading-tight mb-1">10,000+</span>
+              <span className="text-3xl font-bold text-green-600 mb-1">10,000+</span>
               <span className="text-sm text-gray-600">Clinical Trials</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-3xl font-bold text-gray-900 leading-tight mb-1">50+</span>
+              <span className="text-3xl font-bold text-gray-900 mb-1">50+</span>
               <span className="text-sm text-gray-600">Companies</span>
             </div>
             <Link
               href="/indications"
-              className="text-sm text-[#4169E1] hover:underline font-medium inline-flex items-center gap-1.5 ml-auto"
+              className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1.5 ml-auto"
             >
               <Search className="w-4 h-4" />
               Browse All
@@ -312,39 +303,39 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom Section: Intelligence Dashboard + Quick Browse */}
+        {/* Bottom Section: No Gap Between Panels */}
         {loadingInsights ? (
           <div className="text-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#4169E1] mx-auto" />
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
             <p className="text-gray-600 mt-4">Loading insights...</p>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6">
             {/* Left: Intelligence Dashboard */}
             <IntelligenceDashboard 
               therapeuticAreas={therapeuticAreas}
               recentIndications={recentIndications}
             />
 
-            {/* Right: Quick Browse - Matching Visily */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            {/* Right: Quick Browse */}
+            <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
               <div className="flex items-center gap-2 mb-2">
                 <Search className="w-5 h-5 text-gray-600" />
-                <h3 className="text-xl font-bold text-gray-900 leading-tight">Quick Browse</h3>
+                <h3 className="text-xl font-bold text-gray-900">Quick Browse</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">Choose your exploration path</p>
+              <p className="text-sm text-gray-600 mb-6">Choose your exploration path</p>
               
-              {/* Browse by Therapeutic Area - Vibrant Blue */}
-              <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-5">
+              {/* Browse by Therapeutic Area */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Database className="w-5 h-5 text-[#4169E1]" />
+                  <Database className="w-5 h-5 text-blue-600" />
                   <h4 className="text-base font-bold text-gray-900">Browse by Therapeutic Area</h4>
                 </div>
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">Explore {categories.length}+ therapeutic areas and their indications</p>
+                <p className="text-sm text-gray-600 mb-4">Explore {categories.length}+ therapeutic areas and their indications</p>
                 <Link
                   href="/indications"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-[#4169E1] text-white font-semibold rounded-xl hover:bg-[#3B5FD9] transition-all w-full justify-center text-sm mb-5 shadow-sm hover:shadow-md"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all w-full justify-center text-sm mb-5"
+                  style={{ boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)' }}
                 >
                   View All Indications <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -357,7 +348,7 @@ export default function Home() {
                       <Link
                         key={idx}
                         href={`/indications?category=${encodeURIComponent(cat.name)}`}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-[#EFF6FF] transition-colors text-sm border border-gray-100"
+                        className="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors text-sm border border-gray-100"
                       >
                         <span className="font-medium text-gray-900">{cat.name}</span>
                         <span className="text-gray-600 font-medium">{cat.count}</span>
