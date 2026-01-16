@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { Activity, Building2, Newspaper, Bell } from "lucide-react";
+import AskCompeteAI from "@/components/AskCompeteAI";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -52,7 +53,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavLink href="/alerts" icon={<Bell className="w-5 h-5" />} text="Alerts" />
             </nav>
             
-            <div className="mt-8 pt-4 border-t border-gray-200 text-sm text-gray-400">
+            {/* Ask CompeteAI Component */}
+            <div className="mt-6 mb-6">
+              <AskCompeteAI />
+            </div>
+            
+            <div className="mt-auto pt-4 border-t border-gray-200 text-sm text-gray-400">
               <p>&copy; 2026 CompeteAI</p>
               <p className="text-xs mt-1">DelveInsight</p>
             </div>
