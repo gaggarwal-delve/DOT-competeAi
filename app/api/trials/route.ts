@@ -1,11 +1,67 @@
 import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit") || "10";
     const condition = searchParams.get("condition") || "";
+    const useDatabase = searchParams.get("useDatabase") === "true";
 
+    // Option 1: Fetch from database (faster, cached, reliable)
+    if (useDatabase || !condition) {
+      console.log("Fetching trials from database...");
+      
+      const where: any = {};
+      if (condition) {
+        where.conditions = {
+          has: condition,
+        };
+      }
+
+      const dbTrials = await prisma.clinicalTrial.findMany({
+        where,
+        take: parseInt(limit),
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          company: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const trials = dbTrials.map((trial) => ({
+        nctId: trial.nctId,
+        title: trial.title,
+        status: trial.status,
+        phase: trial.phase || "N/A",
+        sponsor: trial.company?.name || trial.sponsorName || "Unknown",
+        conditions: trial.conditions,
+        startDate: trial.startDate?.toISOString() || null,
+        enrollmentCount: trial.enrollmentCount,
+        studyType: trial.studyType || "Unknown",
+      }));
+
+      const response = NextResponse.json({
+        success: true,
+        count: trials.length,
+        trials,
+        source: "Database (Cached)",
+      });
+
+      // Cache for 1 hour
+      response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+      
+      return response;
+    }
+
+    // Option 2: Fetch from ClinicalTrials.gov API (real-time, may fail)
     const apiUrl = process.env.CLINICALTRIALS_API_URL || "https://clinicaltrials.gov/api/v2";
     let query = `${apiUrl}/studies?format=json&pageSize=${limit}`;
     
@@ -19,6 +75,8 @@ export async function GET(request: Request) {
       headers: {
         "Accept": "application/json",
       },
+      // Add timeout protection
+      signal: AbortSignal.timeout(8000), // 8 second timeout
     });
 
     if (!response.ok) {
@@ -49,22 +107,81 @@ export async function GET(request: Request) {
       };
     }) || [];
 
-    return NextResponse.json({
+    const apiResponse = NextResponse.json({
       success: true,
       count: trials.length,
       trials,
-      source: "ClinicalTrials.gov API v2",
+      source: "ClinicalTrials.gov API v2 (Live)",
     });
+
+    // Cache API results for 30 minutes
+    apiResponse.headers.set('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=3600');
+
+    return apiResponse;
   } catch (error: any) {
-    console.error("Error fetching trials:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-        trials: [],
-      },
-      { status: 500 }
-    );
+    console.error("Error fetching trials from API:", error);
+    
+    // FALLBACK: Try database if API fails
+    console.log("API failed, falling back to database...");
+    
+    try {
+      const where: any = {};
+      if (condition) {
+        where.conditions = {
+          has: condition,
+        };
+      }
+
+      const dbTrials = await prisma.clinicalTrial.findMany({
+        where,
+        take: parseInt(limit),
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          company: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const trials = dbTrials.map((trial) => ({
+        nctId: trial.nctId,
+        title: trial.title,
+        status: trial.status,
+        phase: trial.phase || "N/A",
+        sponsor: trial.company?.name || trial.sponsorName || "Unknown",
+        conditions: trial.conditions,
+        startDate: trial.startDate?.toISOString() || null,
+        enrollmentCount: trial.enrollmentCount,
+        studyType: trial.studyType || "Unknown",
+      }));
+
+      const fallbackResponse = NextResponse.json({
+        success: true,
+        count: trials.length,
+        trials,
+        source: "Database (API Fallback)",
+        warning: "ClinicalTrials.gov API unavailable, showing cached data",
+      });
+
+      fallbackResponse.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+
+      return fallbackResponse;
+    } catch (dbError) {
+      console.error("Database fallback also failed:", dbError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Both API and database unavailable",
+          details: error.message,
+          trials: [],
+        },
+        { status: 500 }
+      );
+    }
   }
 }
 

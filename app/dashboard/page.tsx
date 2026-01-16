@@ -29,6 +29,8 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const itemsPerPage = parseInt(limit);
+  const [useDatabase, setUseDatabase] = useState(true); // Default to database for reliability
+  const [dataSource, setDataSource] = useState<string>("");
   
   // New filters
   const [selectedPhases, setSelectedPhases] = useState<string[]>([]);
@@ -42,6 +44,7 @@ export default function DashboardPage() {
       const params = new URLSearchParams();
       params.append("limit", limit);
       params.append("pageNumber", page.toString());
+      params.append("useDatabase", useDatabase.toString());
       if (searchCondition) params.append("condition", searchCondition);
 
       const response = await fetch(`/api/trials?${params}`);
@@ -55,6 +58,12 @@ export default function DashboardPage() {
         }
         setTotalResults(data.totalResults || data.trials.length);
         setCurrentPage(page);
+        setDataSource(data.source || "Unknown");
+        
+        // Show warning if API fallback occurred
+        if (data.warning) {
+          console.warn(data.warning);
+        }
       } else {
         setError(data.error || "Failed to fetch trials");
       }
@@ -71,7 +80,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchTrials();
-  }, []);
+  }, [useDatabase]); // Re-fetch when data source changes
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -200,7 +209,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Clinical Trials</h1>
             <p className="text-gray-600">
-              Live data from ClinicalTrials.gov - {filteredTrials.length} of {trials.length} trials
+              {dataSource || "Loading..."} - {filteredTrials.length} of {trials.length} trials
               {(selectedPhases.length > 0 || dateFrom || dateTo) && ' (filtered)'}
             </p>
           </div>
@@ -258,6 +267,35 @@ export default function DashboardPage() {
                 {loading ? "Loading..." : "Search"}
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Data Source Toggle */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useDatabase}
+                  onChange={(e) => setUseDatabase(e.target.checked)}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-900">
+                  Use Database (Fast & Reliable)
+                </span>
+              </label>
+              <div className="text-xs text-gray-600">
+                {useDatabase 
+                  ? "✅ Showing cached trials from database" 
+                  : "🌐 Fetching live data from ClinicalTrials.gov API"}
+              </div>
+            </div>
+            {dataSource && (
+              <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                {dataSource}
+              </span>
+            )}
           </div>
         </div>
 
